@@ -7,4 +7,5 @@ if [ ! -d "$venv_dir" ]; then
 fi
 . $venv_dir/bin/activate
 pip install -r requirements.txt
+pip install -r requirements_test.txt
 set +x

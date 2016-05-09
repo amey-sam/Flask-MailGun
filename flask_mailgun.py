@@ -35,6 +35,7 @@ ALL_EXTENSIONS = EXTENSIONS["TEXT"] \
                  + EXTENSIONS["DATA"] \
                  + EXTENSIONS["ARCHIVE"]
 
+MAILGUN_API_URL = 'https://api.mailgun.net/v3'
 
 @decorator
 def async(f, *args, **kwargs):
@@ -61,8 +62,8 @@ class MailGun(object):
         self._on_receive = []
         self._on_attachment = []
 
-        self.temp_file_dir = app.config['TEMP_FILE_DIR']
-        self.allowed_extensions = app.config["ALLOWED_EXTENSIONS"]
+        # self.temp_file_dir = app.config['TEMP_FILE_DIR']
+        # self.allowed_extensions = app.config["ALLOWED_EXTENSIONS"]
 
     def send_email(self, **kwargs):
         if not self.mailgun_api:

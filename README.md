@@ -1,7 +1,15 @@
 # Flask-MailGun
+
+
+[![Latest Version](https://img.shields.io/pypi/v/flask-mailgun3.svg)](https://pypi.python.org/pypi/Flask-MailGun3)
+[![Build Status](https://travis-ci.org/amey-sam/Flask-MailGun.svg?branch=master)](https://travis-ci.org/amey-sam/Flask-MailGun.svg?branch=master)
+[![Python Versions](https://img.shields.io/pypi/pyversions/flask-mailgun3.svg)](https://pypi.python.org/pypi/Flask-MailGun3)
+[![License](https://img.shields.io/pypi/l/Flask-MailGun3.svg)](https://pypi.python.org/pypi/Flask-MailGun3)
+[![Downloads](https://img.shields.io/pypi/dm/flask-mailgun3.svg)](https://pypi.python.org/pypi/Flask-Mailgun3)
+
 Flask MailGun extension to use the [MailGun](https://mailgun.com) email parsing service for sending and receiving emails.
 
-## What it dose works
+## What it dose
 
 Flask-MailGun allows you to configure your connection into the MailGun api so that you can
 - Send emails
