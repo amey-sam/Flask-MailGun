@@ -31,8 +31,8 @@ __copyright__ = "2016"
 config = {
     'name': __NAME__,
     'license': __license__,
-    'description': "Flask extension to use the Mailgun email parsing service",
-    "long_description": __doc__,
+    'description': 'Flask extension to use the Mailgun email parsing service',
+    'long_description': __doc__,
     'author': __author__,
     'url': 'https://github.com/amey-sam/Flask-MailGun',
     'download_url': 'https://github.com/amey-sam/Flask-MailGun/tarball/master',
@@ -43,7 +43,7 @@ config = {
     'scripts': [],
     'install_requires': install_requires,
     'keywords': ["flask", "mailgun"],
-    'zip_safe': False
+    'zip_safe': False,
 }
 
 setup(**config)
