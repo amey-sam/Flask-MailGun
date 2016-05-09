@@ -3,7 +3,6 @@ language: python
 python:
   - "2.7"
 
-
 env:
   - MAILGUN_API_KEY=testtesttest
 

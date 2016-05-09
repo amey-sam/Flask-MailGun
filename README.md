@@ -2,7 +2,7 @@
 
 
 [![Latest Version](https://img.shields.io/pypi/v/flask-mailgun3.svg)](https://pypi.python.org/pypi/Flask-MailGun3)
-[![Build Status](https://travis-ci.org/amey-sam/Flask-MailGun.svg?branch=master)](https://travis-ci.org/amey-sam/Flask-MailGun.svg?branch=master)
+[![Build Status](https://travis-ci.org/amey-sam/Flask-MailGun.svg?branch=master)](https://travis-ci.org/amey-sam/Flask-MailGun/builds/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/flask-mailgun3.svg)](https://pypi.python.org/pypi/Flask-MailGun3)
 [![License](https://img.shields.io/pypi/l/Flask-MailGun3.svg)](https://pypi.python.org/pypi/Flask-MailGun3)
 [![Downloads](https://img.shields.io/pypi/dm/flask-mailgun3.svg)](https://pypi.python.org/pypi/Flask-Mailgun3)
