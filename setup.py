@@ -23,7 +23,7 @@ requirements = parse_requirements('requirements.txt', session=False)
 # reqs is a list of requirement
 install_requires = [str(ir.req) for ir in requirements]
 
-__NAME__ = "Flask-MailGun"
+__NAME__ = "Flask-MailGun3"
 __author__ = "Amey-SAM"
 __license__ = "MIT"
 __copyright__ = "2016"
@@ -44,6 +44,17 @@ config = {
     'install_requires': install_requires,
     'keywords': ["flask", "mailgun"],
     'zip_safe': False,
+    'platforms': 'any',
+    'classifiers': [
+        'Development Status :: 4 - Beta',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+        ]
 }
 
 setup(**config)
