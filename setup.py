@@ -41,7 +41,12 @@ config = {
     'version': get_version(),
     # 'packages': ['flask_mailgun'],
     'scripts': [],
-    'install_requires': install_requires,
+    'install_requires': ['Flask',
+                         'requests',
+                         'hashlib',
+                         'hmac',
+                         'decorator'
+                         ],
     'keywords': ["flask", "mailgun"],
     'zip_safe': False,
     'platforms': 'any',
