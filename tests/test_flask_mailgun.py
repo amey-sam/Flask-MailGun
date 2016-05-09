@@ -18,7 +18,6 @@ from tests import config
 def get_app(name):
     app = Flask(name)
     app.config.from_object(config)
-    print config.__file__
     return app
 
 
