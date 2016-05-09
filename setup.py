@@ -23,7 +23,7 @@ requirements = parse_requirements('requirements.txt', session=False)
 # reqs is a list of requirement
 install_requires = [str(ir.req) for ir in requirements]
 
-__NAME__ = "Flask-MailGun"
+__NAME__ = "Flask-MailGun3"
 __author__ = "Amey-SAM"
 __license__ = "MIT"
 __copyright__ = "2016"
@@ -31,18 +31,30 @@ __copyright__ = "2016"
 config = {
     'name': __NAME__,
     'license': __license__,
-    'description': __doc__,
+    'description': 'Flask extension to use the Mailgun email parsing service',
+    'long_description': __doc__,
     'author': __author__,
     'url': 'https://github.com/amey-sam/Flask-MailGun',
     'download_url': 'https://github.com/amey-sam/Flask-MailGun/tarball/master',
     'py_modules': ['flask_mailgun'],
     'author_email': 'richard.mathie@amey.co.uk',
     'version': get_version(),
-    'packages': ['flask.ext.mailgun'],
+    # 'packages': ['flask_mailgun'],
     'scripts': [],
     'install_requires': install_requires,
     'keywords': ["flask", "mailgun"],
-    'zip_safe': False
+    'zip_safe': False,
+    'platforms': 'any',
+    'classifiers': [
+        'Development Status :: 4 - Beta',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+        ]
 }
 
 setup(**config)

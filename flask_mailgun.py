@@ -46,6 +46,7 @@ class MailGun(object):
     """MailGun Class"""
     app = None
     mailgun_api = None
+
     auto_reply = True
     run_async = True
     logger = None
@@ -57,7 +58,7 @@ class MailGun(object):
     def init_app(self, app):
         self.app = app
         self.mailgun_api = MailGunAPI(app.config)
-        self._on_receve = []
+        self._on_receive = []
         self._on_attachment = []
 
         self.temp_file_dir = app.config['TEMP_FILE_DIR']
@@ -74,31 +75,37 @@ class MailGun(object):
         return self.mailgun_api.send_email(**kwargs)
 
     def create_route(self, dest='/messages/'):
+        self.app.route(dest, methods=['POST'])(self.process_email)
         return self.mailgun_api.create_route(dest)
 
-    def on_receve(self, func):
+    def on_receive(self, func):
         """Register callback function with mailgun
 
-        `@mailgun.on_receve
+        `@mailgun.on_receive
         def process_email(email)`
         """
-        self._on_receve.append(func)
+        self._on_receive.append(func)
+        return func
 
     def on_attachment(self, func):
         """Register callback function with mailgun
 
-        `@mailgun.on_receve
+        `@mailgun.on_attachment
         def process_attachment(email, filename, fstream)`
         """
-        self._on_receve.append(func)
+        self._on_attachment.append(func)
+        return func
 
     def process_email(self, request):
-        """Function to pass to endpoint for processing incoming email post"""
+        """Function to pass to endpoint for processing incoming email post
+
+        app.route('/incoming', methods=['POST'])(process_email)
+        """
         email = request.form
 
         self.mailgun_api.__verify_email(email)
         # Process the attachments
-        for func in self.on_attachment:
+        for func in self._on_attachment:
             if self.run_async:
                 func = async(func)
             for attachment in request.files.values():
@@ -108,7 +115,7 @@ class MailGun(object):
                 #    f.write(data)
 
         # Process the email
-        for func in self.on_receve:
+        for func in self._on_receive:
             if self.run_async:
                 func = async(func)
             func(email)
@@ -164,7 +171,7 @@ class MailGunAPI(object):
         responce.raise_for_status()
         return responce
 
-    def create_route(self, dest='/messages/'):
+    def create_route(self, dest='/messages/', data=None):
         self.dest = dest
         data = {"priority": 0,
                 "description": "Sample route",

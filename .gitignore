@@ -60,4 +60,9 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+#Virtualenvironment
 venv_test/
+
+# Spyder IDE
+.spyderproject
