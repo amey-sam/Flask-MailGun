@@ -1,14 +1,12 @@
-sudo: true
+sudo: false
 language: python
 python:
   - "2.7"
-
 
 env:
   - MAILGUN_API_KEY=testtesttest
 
 install:
-  - sudo apt-get install libssl1.0.0
   - pip install -r requirements.txt
   - pip install -r requirements_test.txt
 
