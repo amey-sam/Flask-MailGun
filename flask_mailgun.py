@@ -76,7 +76,7 @@ class MailGun(object):
         return self.mailgun_api.send_email(**kwargs)
 
     def create_route(self, dest='/messages/'):
-        self.app.route(dest, methods=['POST'])(self.process_email)
+        self.app.route(dest, methods=['POST'])(lambda req: self.process_email(req))
         return self.mailgun_api.create_route(dest)
 
     def on_receive(self, func):
