@@ -11,7 +11,6 @@ import hashlib
 import hmac
 import os
 from decorator import decorator
-
 from threading import Thread
 
 
@@ -37,6 +36,7 @@ ALL_EXTENSIONS = EXTENSIONS["TEXT"] \
                  + EXTENSIONS["ARCHIVE"]
 
 MAILGUN_API_URL = 'https://api.mailgun.net/v3'
+
 
 @decorator
 def async(f, *args, **kwargs):
@@ -80,6 +80,7 @@ class MailGun(object):
         """Create the mailgun route and register endpoint with flask app
 
         this needs to be done after `mailgun.app_init`"""
+        
         # register the process_email endpoint with the flask app
         @self.app.route(dest, methods=['POST'])
         def mail_endpoint():
@@ -111,7 +112,6 @@ class MailGun(object):
         app.route('/incoming', methods=['POST'])(process_email)
         """
         email = request.form
-
         self.mailgun_api.verify_email(email)
         # Process the attachments
         for func in self._on_attachment:
@@ -122,7 +122,6 @@ class MailGun(object):
                 # data = attachment.stream.read()
                 # with open(attachment.filename, "w") as f:
                 #    f.write(data)
-
         # Process the email
         for func in self._on_receive:
             if self.run_async:
@@ -140,10 +139,10 @@ class MailGun(object):
         recipient = email.get('To')
         subject = email.get('subject')
         if text is None:
-            text = 'Hello {} \n Yum Yum! you feed me at {}.' % (sender,
-                                                                timestamp)
-
-        self.send_email(**{'from': "%(route)s@%(domain)s" % self.__dict__,
+            message = 'Hello {} \n Yum Yum! you feed me at {}.'
+            text = message.format(sender,
+                                  timestamp)
+        self.send_email(**{'from': "%(route)s@%(domain)s" % self.mailgun_api.__dict__,
                            'to': [sender],
                            'subject': subject,
                            'text': text})
