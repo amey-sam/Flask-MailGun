@@ -4,6 +4,8 @@ Created on Wed Jan 27 21:48:14 2016
 
 @author: richard, yunxi
 """
+import ipdb
+
 import requests
 from flask import request
 # For verification
@@ -80,7 +82,7 @@ class MailGun(object):
         """Create the mailgun route and register endpoint with flask app
 
         this needs to be done after `mailgun.app_init`"""
-        
+
         # register the process_email endpoint with the flask app
         @self.app.route(dest, methods=['POST'])
         def mail_endpoint():
