@@ -10,7 +10,7 @@ import hashlib
 import hmac
 import os
 from decorator import decorator
-
+import ipdb
 from threading import Thread
 
 
@@ -94,6 +94,7 @@ class MailGun(object):
         `@mailgun.on_attachment
         def process_attachment(email, filename, fstream)`
         """
+        ipdb.set_trace()
         self._on_attachment.append(func)
         return func
 
