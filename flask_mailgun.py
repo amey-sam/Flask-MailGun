@@ -4,8 +4,6 @@ Created on Wed Jan 27 21:48:14 2016
 
 @author: richard, yunxi
 """
-import ipdb
-
 import requests
 from flask import request
 # For verification
@@ -44,6 +42,8 @@ MAILGUN_API_URL = 'https://api.mailgun.net/v3'
 def async(f, *args, **kwargs):
     thread = Thread(target=f, args=args, kwargs=kwargs)
     thread.start()
+    return thread
+
 
 
 class MailGun(object):

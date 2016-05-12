@@ -4,8 +4,6 @@ Created on Mon May  9 15:33:58 2016
 
 @author: richard
 """
-import ipdb
-
 import os
 import unittest
 from mock import patch, MagicMock
@@ -89,22 +87,27 @@ class ReceiveMessageCallbacksTest(MailgunTestBase):
         self.mailgun.run_async = False
         self.mailgun.create_route('/upload')
 
-        self.receve_email_func = MagicMock()
-        self.attachment_func = MagicMock()
-
-        self.mailgun.on_receive(self.receve_email_func)
-        self.mailgun.on_attachment(self.attachment_func)
         self.email = make_email_request(self.mailgun)
+
+        self.receve_email_mock = MagicMock(name='receve_email')
+        self.attachment_mock = MagicMock(name='attachment')
+
+        @self.mailgun.on_receive
+        def receive_email_func(*args, **kwargs):
+            return self.receve_email_mock(*args, **kwargs)
+
+        @self.mailgun.on_attachment
+        def attachment_func(*args, **kwargs):
+            return self.attachment_mock(*args, **kwargs)
 
 
 class ReceiveMessageSyncTest(ReceiveMessageCallbacksTest):
 
     def test_receive_message(self):
         response = self.appclient.post('/upload', data=self.email)
-        ipdb.set_trace()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.receve_email_func.call_count, 1)
-        self.assertEqual(self.attachment_func.call_count, 1)
+        self.assertEqual(self.receve_email_mock.call_count, 1)
+        self.assertEqual(self.attachment_mock.call_count, 1)
 
 
 class ReceiveMessageAsyncTest(ReceiveMessageSyncTest):
