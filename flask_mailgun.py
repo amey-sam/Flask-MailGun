@@ -42,6 +42,8 @@ MAILGUN_API_URL = 'https://api.mailgun.net/v3'
 def async(f, *args, **kwargs):
     thread = Thread(target=f, args=args, kwargs=kwargs)
     thread.start()
+    return thread
+
 
 
 class MailGun(object):
@@ -80,7 +82,7 @@ class MailGun(object):
         """Create the mailgun route and register endpoint with flask app
 
         this needs to be done after `mailgun.app_init`"""
-        
+
         # register the process_email endpoint with the flask app
         @self.app.route(dest, methods=['POST'])
         def mail_endpoint():
