@@ -14,7 +14,6 @@ from flask import Flask
 import flask_mailgun
 from tests import config
 from tests.fixtures.email import make_email_request, make_email, sign_email
-import ipdb
 
 def get_app(name):
     app = Flask(name)
@@ -63,7 +62,6 @@ class ReceiveMessageTest(MailgunTestBase):
 #        def 
     
     def test_email_verify(self):
-        # ipdb.set_trace()
         email = make_email()
         # assert error if email not signed
         with self.assertRaises(flask_mailgun.MailGunException):
@@ -78,9 +76,7 @@ class ReceiveMessageTest(MailgunTestBase):
         self.mailgun.create_route('/upload')
         self.mailgun.run_async = False
 
-        ipdb.set_trace()
         response = self.appclient.post('/upload', data=request)  #, file=[request['file']])
-        ipdb.set_trace()
         self.assertEqual(response.status_code, 200)
         # self.mailgun.process_email(request)
 
