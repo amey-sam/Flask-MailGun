@@ -5,6 +5,7 @@ Created on Wed Jan 27 21:48:14 2016
 @author: richard, yunxi
 """
 import requests
+from flask import request
 # For verification
 import hashlib
 import hmac
@@ -76,7 +77,14 @@ class MailGun(object):
         return self.mailgun_api.send_email(**kwargs)
 
     def create_route(self, dest='/messages/'):
-        self.app.route(dest, methods=['POST'])(lambda req: self.process_email(req))
+        """Create the mailgun route and register endpoint with flask app
+
+        this needs to be done after `mailgun.app_init`"""
+        # register the process_email endpoint with the flask app
+        @self.app.route(dest, methods=['POST'])
+        def mail_endpoint():
+            return self.process_email(request)
+        # register the endpoint route with mailgun
         return self.mailgun_api.create_route(dest)
 
     def on_receive(self, func):
@@ -105,7 +113,7 @@ class MailGun(object):
         """
         email = request.form
 
-        self.mailgun_api.__verify_email(email)
+        self.mailgun_api.verify_email(email)
         # Process the attachments
         for func in self._on_attachment:
             if self.run_async:
@@ -169,23 +177,24 @@ class MailGunAPI(object):
             raise MailGunException("No mailgun key supplied.")
 
     def send_email(self, **kwargs):
-        responce = requests.post(self.sendpoint, data=kwargs, auth=self.auth)
+        files = kwargs.pop('files',[])
+        responce = requests.post(self.sendpoint, data=kwargs, files=files, auth=self.auth)
         responce.raise_for_status()
         return responce
 
-    def create_route(self, dest='/messages/', data=None):
+    def create_route(self, dest='/messages/', data=None,):
         self.dest = dest
         data = {"priority": 0,
                 "description": "Sample route",
                 "expression":
-                "match_recipient('%(route)s@%(domain)s')" % self,
-                "action": ["forward('http://%(host)s%(dest)s')" % self,
+                "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
+                "action": ["forward('http://%(host)s%(dest)s')" % self.__dict__,
                            "stop()"]}
         return requests.post(self.api_url + 'routes',
                              auth=self.auth,
                              data=data)
 
-    def __verify_email(self, email):
+    def verify_email(self, email):
         """Check that the email post came from mailgun
 
         see https://documentation.mailgun.com/user_manual.html#webhooks
@@ -215,165 +224,4 @@ class MailGunAPI(object):
         return ('api', self.api_key)
 
 
-'''
--------------- REFERENCE ------------------
 
-1. ========================== Fieds of request.form: ==========================
-
-['stripped-signature',
- 'Spamdiagnosticmetadata',
- 'From',
- 'X-Envelope-From',
- 'X-Ms-Tnef-Correlator',
- 'To',
- 'Thread-Topic',
- 'X-Microsoft-Exchange-Diagnostics',
- 'Dkim-Signature',
- 'X-Ms-Exchange-Crosstenant-Fromentityheader',
- 'Accept-Language',
- 'X-Ms-Exchange-Crosstenant-Originalarrivaltime',
- 'attachment-count',
- 'X-Originatororg',
- 'Thread-Index',
- 'from',
- 'Content-Language',
- 'stripped-html',
- 'Date',
- 'Message-Id',
- 'body-plain',
- 'Mime-Version',
- 'Received',
- 'X-Ms-Exchange-Transport-Crosstenantheadersstamped',
- 'content-id-map',
- 'X-Ms-Exchange-Crosstenant-Id',
- 'timestamp',
- 'X-Forefront-Prvs',
- 'subject',
- 'body-html',
- 'stripped-text',
- 'recipient',
- 'Spamdiagnosticoutput',
- 'sender',
- 'Subject',
- 'X-Mailgun-Incoming',
- 'X-Microsoft-Antispam',
- 'token',
- 'message-headers',
- 'X-Exchange-Antispam-Report-Cfa-Test',
- 'signature',
- 'X-Forefront-Antispam-Report',
- 'X-Ms-Has-Attach',
- 'Content-Type',
- 'X-Originating-Ip',
- 'X-Ms-Office365-Filtering-Correlation-Id']
-
-2. =========================== fields of request: =============================
-
-['__class__',
- '__delattr__',
- '__dict__',
- '__doc__',
- '__enter__',
- '__exit__',
- '__format__',
- '__getattribute__',
- '__hash__',
- '__init__',
- '__module__',
- '__new__',
- '__reduce__',
- '__reduce_ex__',
- '__repr__',
- '__setattr__',
- '__sizeof__',
- '__str__',
- '__subclasshook__',
- '__weakref__',
- '_get_file_stream',
- '_get_stream_for_parsing',
- '_is_old_module',
- '_load_form_data',
- '_parse_content_type',
- '_parsed_content_type',
- 'accept_charsets',
- 'accept_encodings',
- 'accept_languages',
- 'accept_mimetypes',
- 'access_route',
- 'application',
- 'args',
- 'authorization',
- 'base_url',
- 'blueprint',
- 'cache_control',
- 'charset',
- 'close',
- 'content_encoding',
- 'content_length',
- 'content_md5',
- 'content_type',
- 'cookies',
- 'data',
- 'date',
- 'dict_storage_class',
- 'disable_data_descriptor',
- 'encoding_errors',
- 'endpoint',
- 'environ',
- 'files',
- 'form',
- 'form_data_parser_class',
- 'from_values',
- 'full_path',
- 'get_data',
- 'get_json',
- 'headers',
- 'host',
- 'host_url',
- 'if_match',
- 'if_modified_since',
- 'if_none_match',
- 'if_range',
- 'if_unmodified_since',
- 'input_stream',
- 'is_multiprocess',
- 'is_multithread',
- 'is_run_once',
- 'is_secure',
- 'is_xhr',
- 'json',
- 'list_storage_class',
- 'make_form_data_parser',
- 'max_content_length',
- 'max_form_memory_size',
- 'max_forwards',
- 'method',
- 'mimetype',
- 'mimetype_params',
- 'module',
- 'on_json_loading_failed',
- 'parameter_storage_class',
- 'path',
- 'pragma',
- 'query_string',
- 'range',
- 'referrer',
- 'remote_addr',
- 'remote_user',
- 'routing_exception',
- 'scheme',
- 'script_root',
- 'shallow',
- 'stream',
- 'trusted_hosts',
- 'url',
- 'url_charset',
- 'url_root',
- 'url_rule',
- 'user_agent',
- 'values',
- 'view_args',
- 'want_form_data_parsed']
-
-
-'''
