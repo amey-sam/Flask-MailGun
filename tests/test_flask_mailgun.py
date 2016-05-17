@@ -22,10 +22,10 @@ def get_app(name):
 
 class MailgunTestBase(unittest.TestCase):
     def setUp(self):
-        self.app = get_app('test')
-        self.appclient = self.app.test_client()
+        self.app = app= get_app('test')
+        self.appclient = app.test_client()
         self.mailgun = flask_mailgun.MailGun()
-        self.mailgun.init_app(self.app)
+        self.mailgun.init_app(app)
         self.post_patcher = patch('flask_mailgun.requests.post')
         self.mock_post = self.post_patcher.start()
 
@@ -96,9 +96,17 @@ class ReceiveMessageCallbacksTest(MailgunTestBase):
         def receive_email_func(*args, **kwargs):
             return self.receve_email_mock(*args, **kwargs)
 
+        import time
+
         @self.mailgun.on_attachment
-        def attachment_func(*args, **kwargs):
-            return self.attachment_mock(*args, **kwargs)
+        def attachment_func(email, attachment):
+            responce = self.attachment_mock(email, attachment)
+            data = attachment.read()
+            len(data)
+            for i in xrange(10):
+                time.sleep(0.1)
+
+            return responce
 
 
 class ReceiveMessageSyncTest(ReceiveMessageCallbacksTest):
@@ -108,14 +116,34 @@ class ReceiveMessageSyncTest(ReceiveMessageCallbacksTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.receve_email_mock.call_count, 1)
         self.assertEqual(self.attachment_mock.call_count, 1)
+        print "reveved email"
 
 
 class ReceiveMessageAsyncTest(ReceiveMessageSyncTest):
 
     def setUp(self):
         super(ReceiveMessageAsyncTest, self).setUp()
+        self.email1 = make_email_request(self.mailgun)
+        self.email2 = make_email_request(self.mailgun)
         self.mailgun.run_async = True
 
+    def test_receive_2_messages(self):
+        response = self.appclient.post('/upload', data=self.email1)
+        self.assertEqual(response.status_code, 200)
+        response = self.appclient.post('/upload', data=self.email2)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.receve_email_mock.call_count, 2)
+        self.assertEqual(self.attachment_mock.call_count, 2)
+        print "reveved 2 emails"
+
+    def test_receive_100_messages(self):
+        for i in xrange(100):
+            email = make_email_request(self.mailgun)
+            response = self.appclient.post('/upload', data=email)
+            self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.receve_email_mock.call_count, 100)
+        self.assertEqual(self.attachment_mock.call_count, 100)
+        print "reveved 100 emails"
 
 if __name__ == '__main__':
     unittest.main()

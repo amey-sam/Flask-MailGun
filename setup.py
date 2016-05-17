@@ -18,7 +18,7 @@ def get_version():
 
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
-requirements = parse_requirements('requirements.txt', session=False)
+requirements = parse_requirements('requirements.in', session=False)
 
 # reqs is a list of requirement
 install_requires = [str(ir.req) for ir in requirements]
@@ -43,8 +43,8 @@ config = {
     'scripts': [],
     'install_requires': ['Flask',
                          'requests',
-                         'hashlib',
-                         'hmac',
+                         # 'hashlib',
+                         # 'hmac',
                          'decorator'
                          ],
     'keywords': ["flask", "mailgun"],
