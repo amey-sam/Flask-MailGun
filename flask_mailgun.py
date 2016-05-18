@@ -12,7 +12,7 @@ import hmac
 import os
 from decorator import decorator
 from threading import Thread
-
+from werkzeug.utils import secure_filename
 
 class MailGunException(Exception):
     pass
@@ -121,6 +121,7 @@ class MailGun(object):
             if self.run_async:
                 func = async(func)
             for attachment in request.files.values():
+                attachment.filename = secure_filename(attachment.filename)
                 func(email, attachment)
                 # data = attachment.stream.read()
                 # with open(attachment.filename, "w") as f:
