@@ -10,10 +10,11 @@ from flask import request
 import hashlib
 import hmac
 import os
+import json
 from decorator import decorator
 from threading import Thread
 from werkzeug.utils import secure_filename
-
+import ipdb
 class MailGunException(Exception):
     pass
 
@@ -180,6 +181,7 @@ class MailGunAPI(object):
             raise MailGunException("No mailgun key supplied.")
 
     def send_email(self, **kwargs):
+        #ipdb.set_trace()
         files = kwargs.pop('files', [])
         responce = requests.post(self.sendpoint,
                                  data=kwargs,
@@ -189,6 +191,7 @@ class MailGunAPI(object):
         return responce
 
     def create_route(self, dest='/messages/', data=None,):
+        #ipdb.set_trace()
         self.dest = dest
         action = "forward('http://%(host)s%(dest)s')" % self.__dict__
 
@@ -197,10 +200,18 @@ class MailGunAPI(object):
                 "expression":
                 "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
                 "action": [action, "stop()"]}
-
-        return requests.post(self.api_url + 'routes',
-                             auth=self.auth,
-                             data=data)
+        # Create Route Only if it does not Exist
+        get_req = requests.get(self.api_url + 'routes', auth=self.auth)
+        json_req = json.loads(get_req.text)
+        route_exist = (lambda data=data, json_req=json_req: any((
+            item["expression"] == data["expression"] and item["actions"] ==
+            data["action"]) for item in json_req['items']))()
+        if route_exist:
+            return None
+        else:
+            post_req = requests.post(self.api_url + 'routes', auth=self.auth,
+                                     data=data)
+            return post_req
 
     def verify_email(self, email):
         """Check that the email post came from mailgun
@@ -225,7 +236,7 @@ class MailGunAPI(object):
 
     @property
     def sendpoint(self):
-        return '/'.join([self.api_url, self.domain, 'messages'])
+        return ''.join([self.api_url, self.domain, '/messages'])
 
     @property
     def auth(self):
