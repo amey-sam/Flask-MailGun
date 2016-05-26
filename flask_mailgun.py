@@ -14,7 +14,7 @@ import json
 from decorator import decorator
 from threading import Thread
 from werkzeug.utils import secure_filename
-import ipdb
+
 class MailGunException(Exception):
     pass
 
@@ -181,7 +181,6 @@ class MailGunAPI(object):
             raise MailGunException("No mailgun key supplied.")
 
     def send_email(self, **kwargs):
-        #ipdb.set_trace()
         files = kwargs.pop('files', [])
         responce = requests.post(self.sendpoint,
                                  data=kwargs,
@@ -191,7 +190,6 @@ class MailGunAPI(object):
         return responce
 
     def create_route(self, dest='/messages/', data=None,):
-        #ipdb.set_trace()
         self.dest = dest
         action = "forward('http://%(host)s%(dest)s')" % self.__dict__
 
