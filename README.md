@@ -30,9 +30,9 @@ mailgun.init_app(app)
 
 # ..some other time
 @mailgun.on_attachment
-def save_attachment(email, filename, fstream):
-    data = fstream.read()
-    with open(filename, "w") as f:
+def save_attachment(email, attachment):
+    data = attachment.read()
+    with open(attachment.filename, "w") as f:
         f.write(data)
 
 # .. even later
