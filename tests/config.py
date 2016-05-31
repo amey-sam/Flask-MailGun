@@ -9,6 +9,6 @@ import os
 # MailGun parameters
 MAILGUN_ROUTE = 'uploads'
 MAILGUN_DOMAIN = 'example.com'
-MAILGUN_API_URL = 'https://api.mailgun.net/v3/'
+MAILGUN_API_URL = 'https://api.mailgun.net/v3'
 MAILGUN_API_KEY = 'testtesttest'
 MAILGUN_HOST = 'example.com'

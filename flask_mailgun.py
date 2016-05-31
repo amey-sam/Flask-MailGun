@@ -189,27 +189,36 @@ class MailGunAPI(object):
         responce.raise_for_status()
         return responce
 
+    def list_routes(self):
+        request = requests.get(os.path.join([self.api_url, 'routes']),
+                               auth=self.auth)
+        return json.loads(request.text).get('items')
+
+    def route_exists(self, route):
+        routes = self.list_routes()
+
+        if routes:
+            expressions = [r['expression'] for r in routes]
+            actions = [r['actions'] for r in routes]
+            return route['expression'] in expressions and route['action'] in actions
+        else:
+            return False
+
     def create_route(self, dest='/messages/', data=None,):
         self.dest = dest
         action = "forward('http://%(host)s%(dest)s')" % self.__dict__
 
-        data = {"priority": 0,
-                "description": "Sample route",
-                "expression":
-                "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
-                "action": [action, "stop()"]}
-        # Create Route Only if it does not Exist
-        get_req = requests.get(self.api_url + 'routes', auth=self.auth)
-        json_req = json.loads(get_req.text)
-        route_exist = (lambda data=data, json_req=json_req: any((
-            item["expression"] == data["expression"] and item["actions"] ==
-            data["action"]) for item in json_req['items']))()
-        if route_exist:
+        route = {"priority": 0,
+                 "description": "Sample route",
+                 "expression":
+                 "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
+                 "action": [action, "stop()"]}
+        # Create Route Only if it does not Exist # TODO should update?
+        if self.route_exist(route):
             return None
         else:
-            post_req = requests.post(self.api_url + 'routes', auth=self.auth,
+            return requests.post(self.api_url + 'routes', auth=self.auth,
                                      data=data)
-            return post_req
 
     def verify_email(self, email):
         """Check that the email post came from mailgun
@@ -234,7 +243,8 @@ class MailGunAPI(object):
 
     @property
     def sendpoint(self):
-        return ''.join([self.api_url, self.domain, '/messages'])
+        url_pieces = [self.api_url, self.domain, '/messages']
+        return '/'.join(s.strip('/') for s in url_pieces)
 
     @property
     def auth(self):

@@ -22,11 +22,12 @@ def get_app(name):
 
 class MailgunTestBase(unittest.TestCase):
     def setUp(self):
-        self.app = app= get_app('test')
+        self.app = app = get_app('test')
         self.appclient = app.test_client()
         self.mailgun = flask_mailgun.MailGun()
         self.mailgun.init_app(app)
         self.post_patcher = patch('flask_mailgun.requests.post')
+        self.mailgun.routes = MagicMock(return_value=None)
         self.mock_post = self.post_patcher.start()
 
     def tearDown(self):
