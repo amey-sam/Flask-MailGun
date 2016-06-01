@@ -5,7 +5,7 @@ Created on Wed Jan 27 21:48:14 2016
 @author: richard, yunxi
 """
 import requests
-from flask import request
+from flask import request, abort
 # For verification
 import hashlib
 import hmac
@@ -57,7 +57,6 @@ class MailGun(object):
     auto_reply = True
     run_async = True
     logger = None
-    _route = []
 
     def __init__(self, app=None):
         if app is not None:
@@ -109,15 +108,8 @@ class MailGun(object):
             from the flask application.
         Return:
             a string that contains information of the operation results
-        """
-        ret = self.mailgun_api.destroy_route(dest)        
-        try:
-            self._route.remove(dest)
-            msg = "Successfully removed endpoint {}. \n".format(dest)
-        except ValueError:            
-            msg = "Endpoint {} not found. \n".format(dest)
-        
-        return msg + "Remote message from Mailgun: {}".format(ret)
+        """       
+        return "Mailgun says: " + self.mailgun_api.destroy_route(dest)
 
     def on_receive(self, func):
         """Register callback function with mailgun
@@ -240,20 +232,22 @@ class MailGunAPI(object):
         else:
             return requests.post(self.routepoint,
                                  auth=self.auth,
-                                 data=data)
+                                 data=route)
 
     def destroy_route(self, dest):
+        self.dest = ""
         route_id = self.get_route_id(self._build_route(dest))
         if route_id:
-            ret = request.delete(self.api_url + route_id, auth=self.auth)
-        return ret["message"] if route_id else "Route not found"
+            ret = requests.delete(os.path.join(self.routepoint, route_id), auth=self.auth)
+            msg = "Route deleted" if ret.ok else "Route deletion failed. Reason: " + ret.reason
+        return msg if route_id else "Route not found"
 
     def _build_route(self, dest=None):
         """ Build a mailgun route dictionary
         """
         if not dest:
             dest = self.dest
-        action = "forward('http://{}{}".format(self.host, dest)
+        action = "forward('http://{}{}')".format(self.host, dest)
         return {"priority": 0,
                  "description": "Sample route",
                  "expression": "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
@@ -265,8 +259,8 @@ class MailGunAPI(object):
         """
         routes = self.list_routes()
         if routes:
-            id_table = dict([(r["expression"]+r["actions"], r["id"]) for r in routes])
-        return id_table.get(route["expression"]+route["action"]) if routes else None
+            id_table = dict([(r["expression"].join(r["actions"]), r["id"]) for r in routes])
+        return id_table.get(route["expression"].join(route["action"])) if routes else None
 
     def verify_email(self, email):
         """Check that the email post came from mailgun
@@ -304,5 +298,6 @@ class MailGunAPI(object):
     @property
     def auth(self):
         return ('api', self.api_key)
+
 
 
