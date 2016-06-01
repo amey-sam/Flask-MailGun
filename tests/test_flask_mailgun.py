@@ -12,7 +12,7 @@ from flask import Flask
 import flask_mailgun
 from tests import config
 from tests.fixtures.email import make_email_request, make_email, sign_email
-
+import time
 
 def get_app(name):
     app = Flask(name)
@@ -143,6 +143,7 @@ class ReceiveMessageAsyncTest(ReceiveMessageSyncTest):
         self.assertEqual(response.status_code, 200)
         response = self.appclient.post('/upload', data=self.email2)
         self.assertEqual(response.status_code, 200)
+        time.sleep(1)
         self.assertEqual(self.receve_email_mock.call_count, 2)
         self.assertEqual(self.attachment_mock.call_count, 2)
         print "reveved 2 emails"
