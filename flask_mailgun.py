@@ -10,6 +10,7 @@ from flask import request
 import hashlib
 import hmac
 import os
+import json
 from decorator import decorator
 from threading import Thread
 from werkzeug.utils import secure_filename
@@ -214,19 +215,36 @@ class MailGunAPI(object):
         responce.raise_for_status()
         return responce
 
+    def list_routes(self):
+        request = requests.get(os.path.join([self.api_url, 'routes']),
+                               auth=self.auth)
+        return json.loads(request.text).get('items')
+
+    def route_exists(self, route):
+        routes = self.list_routes()
+
+        if routes:
+            expressions = [r['expression'] for r in routes]
+            actions = [r['actions'] for r in routes]
+            return route['expression'] in expressions and route['action'] in actions
+        else:
+            return False
+
     def create_route(self, dest='/messages/', data=None,):
         self.dest = dest
         action = "forward('http://%(host)s%(dest)s')" % self.__dict__
 
-        data = {"priority": 0,
-                "description": "Sample route",
-                "expression":
-                "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
-                "action": [action, "stop()"]}
-
-        return requests.post(self.api_url + 'routes',
-                             auth=self.auth,
-                             data=data)
+        route = {"priority": 0,
+                 "description": "Sample route",
+                 "expression":
+                 "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
+                 "action": [action, "stop()"]}
+        # Create Route Only if it does not Exist # TODO should update?
+        if self.route_exist(route):
+            return None
+        else:
+            return requests.post(self.api_url + 'routes', auth=self.auth,
+                                     data=data)
 
     def destroy_route(self, dest):
         
@@ -255,7 +273,8 @@ class MailGunAPI(object):
 
     @property
     def sendpoint(self):
-        return '/'.join([self.api_url, self.domain, 'messages'])
+        url_pieces = [self.api_url, self.domain, '/messages']
+        return '/'.join(s.strip('/') for s in url_pieces)
 
     @property
     def auth(self):
