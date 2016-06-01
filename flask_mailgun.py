@@ -55,6 +55,7 @@ class MailGun(object):
     auto_reply = True
     run_async = True
     logger = None
+    _route = []
 
     def __init__(self, app=None):
         if app is not None:
@@ -82,14 +83,39 @@ class MailGun(object):
     def create_route(self, dest='/messages/'):
         """Create the mailgun route and register endpoint with flask app
 
-        this needs to be done after `mailgun.app_init`"""
-
+        this needs to be done after `mailgun.app_init`
+        
+        Note: currently there is not an eay way to remove a route from flask 
+        app after creation. As a result, some extra logic is added here to 
+        facilitate the `destroy_route` function. For more information see:
+        http://stackoverflow.com/questions/24129217/flask-delete-routes-added-with-add-url
+        
+        """
+        self._route.append(dest)
         # register the process_email endpoint with the flask app
         @self.app.route(dest, methods=['POST'])
         def mail_endpoint():
-            return self.process_email(request)
+            if dest in self._route:
+                return self.process_email(request)
+            abort(404)
         # register the endpoint route with mailgun
         return self.mailgun_api.create_route(dest)
+
+    def destroy_route(self, dest):
+        """ Destroy routes from mailgun
+        Description:        
+            Destroy the route from Mailgun, and remove the correspinding route 
+            from the flask application.
+        Return:
+            a string that contains information regarding to the operation
+        """
+        ret = self.mailgun_api.destroy_route(dest)
+        try:
+            self._route.remove(dest)
+        except ValueError:
+            
+        
+
 
     def on_receive(self, func):
         """Register callback function with mailgun
@@ -202,6 +228,10 @@ class MailGunAPI(object):
                              auth=self.auth,
                              data=data)
 
+    def destroy_route(self, dest):
+        
+
+
     def verify_email(self, email):
         """Check that the email post came from mailgun
 
@@ -230,3 +260,5 @@ class MailGunAPI(object):
     @property
     def auth(self):
         return ('api', self.api_key)
+
+
