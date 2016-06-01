@@ -11,10 +11,14 @@ import hashlib
 import hmac
 import os
 import json
+import tempfile
 from collections import defaultdict
 from decorator import decorator
 from threading import Thread
+from multiprocessing import Pool
 from werkzeug.utils import secure_filename
+from werkzeug.datastructures import FileStorage
+
 
 class MailGunException(Exception):
     pass
@@ -42,11 +46,24 @@ MAILGUN_API_URL = 'https://api.mailgun.net/v3'
 
 @decorator
 def async(f, *args, **kwargs):
-    # this is not thread safe at the moment
-    # TODO consider using celery or multiprocesing pool
-    thread = Thread(target=f, args=args, kwargs=kwargs)
-    thread.start()
-    return thread
+    return pool.apply_async(f, args=args, kwds=kwargs)
+
+
+@decorator
+def sync(f, *args, **kwargs):
+    return f(*args, **kwargs)
+
+
+@decorator
+def attachment_decorator(f, email, filename):
+    print "opening", filename, " on", os.getpid()
+    with open(filename, 'r') as file:
+        attachment = FileStorage(stream=file,
+                                 filename=filename)
+        result = f(email, attachment)
+    return result
+
+pool = Pool(5)
 
 
 class MailGun(object):
@@ -55,7 +72,6 @@ class MailGun(object):
     mailgun_api = None
 
     auto_reply = True
-    run_async = True
     logger = None
 
     def __init__(self, app=None):
@@ -65,6 +81,10 @@ class MailGun(object):
     def init_app(self, app):
         self.app = app
         self.mailgun_api = MailGunAPI(app.config)
+        self.allowed_extensions = app.config.get('ALLOWED_EXTENSIONS',
+                                                 ALL_EXTENSIONS)
+        self.callback_handeler = app.config.get('MAILGUN_CALLBACK_HANDELER',
+                                                sync)
         self._on_receive = []
         self._on_attachment = []
 
@@ -111,6 +131,25 @@ class MailGun(object):
         self._on_attachment.append(func)
         return func
 
+    def file_allowed(self, filename):
+        return '.' in filename and \
+           filename.rsplit('.', 1)[1] in self.allowed_extensions
+
+    def get_attachments(self, request):
+        files = request.files.values()
+        attachments = [att for att in files if self.file_allowed(att.filename)]
+        return attachments
+
+    def save_attachments(self, attachments, tempdir=None):
+        if not tempdir:
+            tempdir = tempfile.mkdtemp()
+        filenames = [os.path.join(tempdir,
+                                  secure_filename(att.filename))
+                     for att in attachments]
+        for (filename, attachment) in zip(filenames, attachments):
+            attachment.save(filename)
+        return filenames
+
     def process_email(self, request):
         """Function to pass to endpoint for processing incoming email post
 
@@ -118,20 +157,20 @@ class MailGun(object):
         """
         email = request.form
         self.mailgun_api.verify_email(email)
+
         # Process the attachments
+        tempdir = './temp/'  # tempfile.mkdtemp()
+        attachments = self.get_attachments(request)
+        filenames = self.save_attachments(attachments, tempdir=tempdir)
+
         for func in self._on_attachment:
-            if self.run_async:
-                func = async(func)
-            for attachment in request.files.values():
-                attachment.filename = secure_filename(attachment.filename)
+            func = self.callback_handeler(attachment_decorator(func))
+            for attachment in filenames:
                 func(email, attachment)
-                # data = attachment.stream.read()
-                # with open(attachment.filename, "w") as f:
-                #    f.write(data)
+
         # Process the email
         for func in self._on_receive:
-            if self.run_async:
-                func = async(func)
+            func = self.callback_handeler(func)
             func(email)
         # log and notify
         self.__log_status(request)
