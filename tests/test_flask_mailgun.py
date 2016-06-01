@@ -125,6 +125,7 @@ class ReceiveMessageSyncTest(ReceiveMessageCallbacksTest):
     def test_receive_message(self):
         response = self.appclient.post('/upload', data=self.email)
         self.assertEqual(response.status_code, 200)
+        time.sleep(1)
         self.assertEqual(self.receve_email_mock.call_count, 1)
         self.assertEqual(self.attachment_mock.call_count, 1)
         print "reveved email"
