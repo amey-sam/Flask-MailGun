@@ -86,19 +86,18 @@ class MailGun(object):
 
         this needs to be done after `mailgun.app_init`
         
-        Note: currently there is not an eay way to remove a route from flask 
-        app after creation. As a result, some extra logic is added here to 
-        facilitate the `destroy_route` function. For more information see:
-        http://stackoverflow.com/questions/24129217/flask-delete-routes-added-with-add-url
-        
         """
-        self._route.append(dest)
         # register the process_email endpoint with the flask app
         @self.app.route(dest, methods=['POST'])
         def mail_endpoint():
-            if dest in self._route:
+            #  Note: currently there is not an eay way to remove a route from flask 
+            #  app after creation. As a result, an extra if-clause is added here to 
+            #  facilitate the `destroy_route` function. For more information see:
+            #  http://stackoverflow.com/questions/24129217/flask-delete-routes-added-with-add-url
+            if dest == self.mailgun_api.dest:
                 return self.process_email(request)
             abort(404)
+        
         # register the endpoint route with mailgun
         return self.mailgun_api.create_route(dest)
 
@@ -108,15 +107,16 @@ class MailGun(object):
             Destroy the route from Mailgun, and remove the correspinding route 
             from the flask application.
         Return:
-            a string that contains information regarding to the operation
+            a string that contains information of the operation results
         """
-        ret = self.mailgun_api.destroy_route(dest)
+        ret = self.mailgun_api.destroy_route(dest)        
         try:
             self._route.remove(dest)
-        except ValueError:
-            
+            msg = "Successfully removed endpoint {}. \n".format(dest)
+        except ValueError:            
+            msg = "Endpoint {} not found. \n".format(dest)
         
-
+        return msg + "Remote message from Mailgun: {}".format(ret)
 
     def on_receive(self, func):
         """Register callback function with mailgun
@@ -232,23 +232,39 @@ class MailGunAPI(object):
 
     def create_route(self, dest='/messages/', data=None,):
         self.dest = dest
-        action = "forward('http://%(host)s%(dest)s')" % self.__dict__
-
-        route = {"priority": 0,
-                 "description": "Sample route",
-                 "expression":
-                 "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
-                 "action": [action, "stop()"]}
+        route = self._build_route()
         # Create Route Only if it does not Exist # TODO should update?
-        if self.route_exist(route):
+        if self.route_exists(route):
             return None
         else:
             return requests.post(self.api_url + 'routes', auth=self.auth,
                                      data=data)
 
     def destroy_route(self, dest):
-        
+        route_id = self.get_route_id(self._build_route(dest))
+        if route_id:
+            ret = request.delete(self.api_url + route_id, auth=self.auth)
+        return ret["message"] if route_id else "Route not found"
 
+    def _build_route(self, dest=None):
+        """ Build a mailgun route dictionary
+        """
+        if not dest:
+            dest = self.dest
+        action = "forward('http://{}{}".format(self.host, dest)
+        return {"priority": 0,
+                 "description": "Sample route",
+                 "expression": "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
+                 "action": [action, "stop()"]}
+
+    def get_route_id(self, route):
+        """ Get id of the route
+        Return: id of the route. None if not exist.
+        """
+        routes = self.list_routes()
+        if routes:
+            id_table = dict([(r["expression"]+r["actions"], r["id"]) for r in routes])
+        return id_table.get(route["expression"]+route["action"]) if routes else None
 
     def verify_email(self, email):
         """Check that the email post came from mailgun
