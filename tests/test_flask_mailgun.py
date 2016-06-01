@@ -12,7 +12,7 @@ from flask import Flask
 import flask_mailgun
 from tests import config
 from tests.fixtures.email import make_email_request, make_email, sign_email
-
+import time
 
 def get_app(name):
     app = Flask(name)
@@ -22,15 +22,26 @@ def get_app(name):
 
 class MailgunTestBase(unittest.TestCase):
     def setUp(self):
-        self.app = app= get_app('test')
+        self.app = app = get_app('test')
         self.appclient = app.test_client()
         self.mailgun = flask_mailgun.MailGun()
         self.mailgun.init_app(app)
         self.post_patcher = patch('flask_mailgun.requests.post')
+        self.mailgun.mailgun_api.list_routes = MagicMock(return_value=[])
         self.mock_post = self.post_patcher.start()
 
     def tearDown(self):
         self.post_patcher.stop()
+
+
+class MailGunApiTest(MailgunTestBase):
+    def test_sendpoint(self):
+        self.assertEqual(self.mailgun.mailgun_api.sendpoint,
+                         'https://api.mailgun.net/v3/example.com/messages')
+
+    def test_routpoint(self):
+        self.assertEqual(self.mailgun.mailgun_api.routepoint,
+                         'https://api.mailgun.net/v3/routes')
 
 
 class SendMessageTest(MailgunTestBase):
@@ -114,6 +125,7 @@ class ReceiveMessageSyncTest(ReceiveMessageCallbacksTest):
     def test_receive_message(self):
         response = self.appclient.post('/upload', data=self.email)
         self.assertEqual(response.status_code, 200)
+        time.sleep(1)
         self.assertEqual(self.receve_email_mock.call_count, 1)
         self.assertEqual(self.attachment_mock.call_count, 1)
         print "reveved email"
@@ -132,6 +144,7 @@ class ReceiveMessageAsyncTest(ReceiveMessageSyncTest):
         self.assertEqual(response.status_code, 200)
         response = self.appclient.post('/upload', data=self.email2)
         self.assertEqual(response.status_code, 200)
+        time.sleep(1)
         self.assertEqual(self.receve_email_mock.call_count, 2)
         self.assertEqual(self.attachment_mock.call_count, 2)
         print "reveved 2 emails"
