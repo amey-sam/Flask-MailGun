@@ -11,6 +11,7 @@ import hashlib
 import hmac
 import os
 import json
+from collections import defaultdict
 from decorator import decorator
 from threading import Thread
 from werkzeug.utils import secure_filename
@@ -190,19 +191,19 @@ class MailGunAPI(object):
         return responce
 
     def list_routes(self):
-        request = requests.get(os.path.join([self.api_url, 'routes']),
+        request = requests.get(self.routepoint,
                                auth=self.auth)
         return json.loads(request.text).get('items')
 
     def route_exists(self, route):
         routes = self.list_routes()
 
-        if routes:
-            expressions = [r['expression'] for r in routes]
-            actions = [r['actions'] for r in routes]
-            return route['expression'] in expressions and route['action'] in actions
-        else:
-            return False
+        expression_action = defaultdict(list)
+        for r in routes:
+            expression_action[r['expression']].extend(r['actions'])
+
+        current_actions = expression_action[route['expression']]
+        return set(route['action']) <= set(current_actions)
 
     def create_route(self, dest='/messages/', data=None,):
         self.dest = dest
@@ -213,12 +214,14 @@ class MailGunAPI(object):
                  "expression":
                  "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
                  "action": [action, "stop()"]}
-        # Create Route Only if it does not Exist # TODO should update?
-        if self.route_exist(route):
+        # Create Route Only if it does not Exist
+        # TODO should not it update?
+        if self.route_exists(route):
             return None
         else:
-            return requests.post(self.api_url + 'routes', auth=self.auth,
-                                     data=data)
+            return requests.post(self.routepoint,
+                                 auth=self.auth,
+                                 data=data)
 
     def verify_email(self, email):
         """Check that the email post came from mailgun
@@ -241,10 +244,17 @@ class MailGunAPI(object):
         if signature != signature_calc:
             raise MailGunException("Mailbox Error: credential verification failed.", "Signature doesn't match")
 
+    def api_route(self, *pieces):
+        pieces = [self.api_url] + [p for p in pieces]
+        return '/'.join(s.strip('/') for s in pieces)
+
     @property
     def sendpoint(self):
-        url_pieces = [self.api_url, self.domain, '/messages']
-        return '/'.join(s.strip('/') for s in url_pieces)
+        return self.api_route(self.domain, 'messages')
+
+    @property
+    def routepoint(self):
+        return self.api_route('routes')
 
     @property
     def auth(self):

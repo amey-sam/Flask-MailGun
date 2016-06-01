@@ -27,11 +27,21 @@ class MailgunTestBase(unittest.TestCase):
         self.mailgun = flask_mailgun.MailGun()
         self.mailgun.init_app(app)
         self.post_patcher = patch('flask_mailgun.requests.post')
-        self.mailgun.routes = MagicMock(return_value=None)
+        self.mailgun.mailgun_api.list_routes = MagicMock(return_value=[])
         self.mock_post = self.post_patcher.start()
 
     def tearDown(self):
         self.post_patcher.stop()
+
+
+class MailGunApiTest(MailgunTestBase):
+    def test_sendpoint(self):
+        self.assertEqual(self.mailgun.mailgun_api.sendpoint,
+                         'https://api.mailgun.net/v3/example.com/messages')
+
+    def test_routpoint(self):
+        self.assertEqual(self.mailgun.mailgun_api.routepoint,
+                         'https://api.mailgun.net/v3/routes')
 
 
 class SendMessageTest(MailgunTestBase):
