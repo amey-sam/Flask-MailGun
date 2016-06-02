@@ -5,7 +5,7 @@ Created on Wed Jan 27 21:48:14 2016
 @author: richard, yunxi
 """
 import requests
-from flask import request
+from flask import request, abort
 # For verification
 import hashlib
 import hmac
@@ -128,14 +128,32 @@ class MailGun(object):
     def create_route(self, dest='/messages/'):
         """Create the mailgun route and register endpoint with flask app
 
-        this needs to be done after `mailgun.app_init`"""
-
+        this needs to be done after `mailgun.app_init`
+        
+        """
         # register the process_email endpoint with the flask app
         @self.app.route(dest, methods=['POST'])
         def mail_endpoint():
-            return self.process_email(request)
+            #  Note: currently there is not an eay way to remove a route from flask 
+            #  app after creation. As a result, an extra if-clause is added here to 
+            #  facilitate the `destroy_route` function. For more information see:
+            #  http://stackoverflow.com/questions/24129217/flask-delete-routes-added-with-add-url
+            if dest == self.mailgun_api.dest:
+                return self.process_email(request)
+            abort(404)
+        
         # register the endpoint route with mailgun
         return self.mailgun_api.create_route(dest)
+
+    def destroy_route(self, dest):
+        """ Destroy routes from mailgun
+        Description:        
+            Destroy the route from Mailgun, and remove the correspinding route 
+            from the flask application.
+        Return:
+            a string that contains information of the operation results
+        """       
+        return "Mailgun says: " + self.mailgun_api.destroy_route(dest)
 
     def on_receive(self, func):
         """Register callback function with mailgun
@@ -269,21 +287,42 @@ class MailGunAPI(object):
 
     def create_route(self, dest='/messages/', data=None,):
         self.dest = dest
-        action = "forward('http://%(host)s%(dest)s')" % self.__dict__
-
-        route = {"priority": 0,
-                 "description": "Sample route",
-                 "expression":
-                 "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
-                 "action": [action, "stop()"]}
-        # Create Route Only if it does not Exist
-        # TODO should not it update?
+        route = self._build_route()
+        # Create Route Only if it does not Exist # TODO should update?
         if self.route_exists(route):
             return None
         else:
             return requests.post(self.routepoint,
                                  auth=self.auth,
-                                 data=data)
+                                 data=route)
+
+    def destroy_route(self, dest):
+        self.dest = ""
+        route_id = self.get_route_id(self._build_route(dest))
+        if route_id:
+            ret = requests.delete(os.path.join(self.routepoint, route_id), auth=self.auth)
+            msg = "Route deleted" if ret.ok else "Route deletion failed. Reason: " + ret.reason
+        return msg if route_id else "Route not found"
+
+    def _build_route(self, dest=None):
+        """ Build a mailgun route dictionary
+        """
+        if not dest:
+            dest = self.dest
+        action = "forward('http://{}{}')".format(self.host, dest)
+        return {"priority": 0,
+                 "description": "Sample route",
+                 "expression": "match_recipient('%(route)s@%(domain)s')" % self.__dict__,
+                 "action": [action, "stop()"]}
+
+    def get_route_id(self, route):
+        """ Get id of the route
+        Return: id of the route. None if not exist.
+        """
+        routes = self.list_routes()
+        if routes:
+            id_table = dict([(r["expression"].join(r["actions"]), r["id"]) for r in routes])
+        return id_table.get(route["expression"].join(route["action"])) if routes else None
 
     def verify_email(self, email):
         """Check that the email post came from mailgun
@@ -321,3 +360,6 @@ class MailGunAPI(object):
     @property
     def auth(self):
         return ('api', self.api_key)
+
+
+
