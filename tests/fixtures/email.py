@@ -7,10 +7,10 @@ Created on Wed May 11 13:30:28 2016
 from flask import Request
 import hashlib
 import hmac
-import os
 import random
 import string
 from time import time
+from tests.fixtures import get_attachment
 
 url_safe_chars = string.lowercase+string.digits+string.uppercase
 
@@ -47,10 +47,7 @@ def make_email():
 
 def attach_file(email):
     """generate request with attachment"""
-    filename = "test_attachment.txt"
-    fixture_dir = os.path.dirname(__file__)
-    f_name = os.path.join(fixture_dir, filename)
-    file_stream = open(f_name, "r")
+    (filename, file_stream) = get_attachment()
     attachment = dict(filename=filename,
                       file=file_stream)
     email.update({"attachment-count": 1})
