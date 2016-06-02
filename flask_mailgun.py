@@ -10,10 +10,13 @@ from flask import request
 import hashlib
 import hmac
 import os
+import shutil
+
 import json
 import tempfile
 from collections import defaultdict
 from decorator import decorator
+from functools import wraps
 from threading import Thread
 from multiprocessing import Pool
 from werkzeug.utils import secure_filename
@@ -44,9 +47,15 @@ ALL_EXTENSIONS = EXTENSIONS["TEXT"] \
 MAILGUN_API_URL = 'https://api.mailgun.net/v3'
 
 
-@decorator
-def async(f, *args, **kwargs):
-    return pool.apply_async(f, args=args, kwds=kwargs)
+def async_pool(pool_size):
+    def wrapper(func):
+        pool = Pool(pool_size)
+
+        @wraps(func)
+        def inner(*args, **kwargs):
+            return pool.apply_async(func, args=args, kwds=kwargs)
+        return inner
+    return wrapper
 
 
 @decorator
@@ -56,14 +65,27 @@ def sync(f, *args, **kwargs):
 
 @decorator
 def attachment_decorator(f, email, filename):
-    print "opening", filename, " on", os.getpid()
+    """Converts a file back into a FileStorage Object"""
     with open(filename, 'r') as file:
         attachment = FileStorage(stream=file,
                                  filename=filename)
         result = f(email, attachment)
     return result
 
-pool = Pool(5)
+
+def clean_up(results, tempdir):
+    """Clean up after an email is procesed
+
+    Take the returned Async Results and wait for all results to return
+    before removing temporary folder
+    """
+    for result in results:
+        try:
+            result.wait()
+        except AttributeError:
+            """Not Async"""
+    shutil.rmtree(tempdir)
+    return 1
 
 
 class MailGun(object):
@@ -85,6 +107,8 @@ class MailGun(object):
                                                  ALL_EXTENSIONS)
         self.callback_handeler = app.config.get('MAILGUN_CALLBACK_HANDELER',
                                                 sync)
+        self.async = async_pool(app.config.get('MAILGUN_BG_PROCESSES', 4))
+
         self._on_receive = []
         self._on_attachment = []
 
@@ -119,7 +143,7 @@ class MailGun(object):
         `@mailgun.on_receive
         def process_email(email)`
         """
-        self._on_receive.append(func)
+        self._on_receive.append(self.callback_handeler(func))
         return func
 
     def on_attachment(self, func):
@@ -128,7 +152,8 @@ class MailGun(object):
         `@mailgun.on_attachment
         def process_attachment(email, filestorage)`
         """
-        self._on_attachment.append(func)
+        new_func = self.callback_handeler(attachment_decorator(func))
+        self._on_attachment.append(new_func)
         return func
 
     def file_allowed(self, filename):
@@ -143,9 +168,8 @@ class MailGun(object):
     def save_attachments(self, attachments, tempdir=None):
         if not tempdir:
             tempdir = tempfile.mkdtemp()
-        filenames = [os.path.join(tempdir,
-                                  secure_filename(att.filename))
-                     for att in attachments]
+        filenames = [secure_filename(att.filename) for att in attachments]
+        filenames = [os.path.join(tempdir, name) for name in filenames]
         for (filename, attachment) in zip(filenames, attachments):
             attachment.save(filename)
         return filenames
@@ -157,20 +181,19 @@ class MailGun(object):
         """
         email = request.form
         self.mailgun_api.verify_email(email)
-
         # Process the attachments
-        tempdir = './temp/'  # tempfile.mkdtemp()
+        tempdir = tempfile.mkdtemp()
         attachments = self.get_attachments(request)
-        filenames = self.save_attachments(attachments, tempdir=tempdir)
+        filenames = self.save_attachments(attachments, tempdir)
+        results = [func(email, attachment)
+                   for func in self._on_attachment
+                   for attachment in filenames]
 
-        for func in self._on_attachment:
-            func = self.callback_handeler(attachment_decorator(func))
-            for attachment in filenames:
-                func(email, attachment)
+        cleanup = Thread(target=clean_up, args=(results, tempdir))
+        cleanup.start()
 
         # Process the email
         for func in self._on_receive:
-            func = self.callback_handeler(func)
             func(email)
         # log and notify
         self.__log_status(request)
