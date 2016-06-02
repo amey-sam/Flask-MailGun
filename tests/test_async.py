@@ -1,22 +1,8 @@
 # import os
 import time
 # from flask_mailgun import async
-from multiprocessing import Pool  # , active_children
-from functools import wraps
+from flask_mailgun import async_pool
 import unittest
-
-
-# function decorator
-def async_pool(pool_size):
-
-    def wrapper(func):
-        pool = Pool(pool_size)
-
-        @wraps(func)
-        def inner(*args, **kwargs):
-            return pool.apply_async(func, args=args, kwds=kwargs)
-        return inner
-    return wrapper
 
 
 def runner(fun):
