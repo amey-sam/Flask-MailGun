@@ -66,3 +66,7 @@ venv_test/
 
 # Spyder IDE
 .spyderproject
+
+# Pylint
+pylint.out
+
