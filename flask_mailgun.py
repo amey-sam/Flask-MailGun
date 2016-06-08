@@ -21,7 +21,7 @@ from threading import Thread
 from multiprocessing import Pool
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
-
+import ipdb
 
 class MailGunException(Exception):
     pass
@@ -125,7 +125,7 @@ class MailGun(object):
 
         return self.mailgun_api.send_email(**kwargs)
 
-    def create_route(self, dest='/messages/'):
+    def create_route(self, recipient='user', dest='/messages/', priority=0):
         """Create the mailgun route and register endpoint with flask app
 
         this needs to be done after `mailgun.app_init`
@@ -143,9 +143,8 @@ class MailGun(object):
             if dest == self.mailgun_api.dest:
                 return self.process_email(request)
             abort(404)
-
         # register the endpoint route with mailgun
-        return self.mailgun_api.create_route(dest)
+        return self.mailgun_api.create_route(recipient, dest, priority)
 
     def destroy_route(self, dest):
         """ Destroy routes from mailgun
@@ -228,9 +227,8 @@ class MailGun(object):
         subject = email.get('subject')
         if text is None:
             message = 'Hello {} \n Yum Yum! you feed me at {}.'
-            text = message.format(sender,
-                                  timestamp)
-        recipient = "%(route)s@%(domain)s" % self.mailgun_api.__dict__
+            text = message.format(sender, timestamp)
+        # recipient = "%(route)s@%(domain)s" % self.mailgun_api.__dict__
         self.send_email(**{'from': recipient,
                            'to': [sender],
                            'subject': subject,
@@ -259,7 +257,7 @@ class MailGunAPI(object):
         self.api_url = config.get('MAILGUN_API_URL',
                                   'https://api.mailgun.net/v2/')
         self.route = config.get('MAILGUN_ROUTE', 'uploads')
-        self.host = config.get('MAILGUN_DOMAIN', self.domain)
+        self.host = config.get('MAILGUN_HOST', self.domain)
         if self.api_key is None:
             raise MailGunException("No mailgun key supplied.")
 
@@ -287,9 +285,10 @@ class MailGunAPI(object):
         current_actions = expression_action[route['expression']]
         return set(route['action']) <= set(current_actions)
 
-    def create_route(self, dest='/messages/', data=None,):
+    def create_route(self, recipient='user', dest='/messages/', priority=0, 
+                     data=None):
         self.dest = dest
-        route = self._build_route()
+        route = self._build_route(recipient)
         # Create Route Only if it does not Exist # TODO should update?
         if self.route_exists(route):
             return None
@@ -310,15 +309,16 @@ class MailGunAPI(object):
                 return "Route deletion failed. Reason: " + ret.reason
         return "Route not found"
 
-    def _build_route(self, dest=None):
+    def _build_route(self, recipient, dest=None, priority=0):
         """ Build a mailgun route dictionary
         """
         if not dest:
             dest = self.dest
         action = "forward('http://{}{}')".format(self.host, dest)
-        expression = "match_recipient('%(route)s@%(domain)s')" % self.__dict__
-        return {"priority": 0,
-                "description": "Sample route",
+        # ipdb.set_trace()
+        expression = "match_recipient('{}@{}')".format(recipient, self.domain)
+        return {"priority": priority,
+                "description": "Route created by Flak-MailGun3",
                 "expression": expression,
                 "action": [action, "stop()"]}
 
