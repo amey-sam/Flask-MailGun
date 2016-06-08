@@ -288,7 +288,7 @@ class MailGunAPI(object):
     def create_route(self, recipient='user', dest='/messages/', priority=0, 
                      data=None):
         self.dest = dest
-        route = self._build_route(recipient)
+        route = self._build_route(recipient, dest, priority)
         # Create Route Only if it does not Exist # TODO should update?
         if self.route_exists(route):
             return None
