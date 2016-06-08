@@ -79,8 +79,7 @@ class ReceiveMessageTest(MailgunTestBase):
     def test_receive_message(self):
         request = make_email_request(self.mailgun)
         # files = request.pop('files',[])
-        self.mailgun.create_route('/upload')
-
+        self.mailgun.create_route('user', '/upload')
         response = self.appclient.post('/upload', data=request)
         self.assertEqual(response.status_code, 200)
         # self.mailgun.process_email(request)
@@ -90,7 +89,7 @@ class ReceiveMessageCallbacksTest(MailgunTestBase):
 
     def setUp(self):
         super(ReceiveMessageCallbacksTest, self).setUp()
-        self.mailgun.create_route('/upload')
+        self.mailgun.create_route('user', '/upload')
 
         self.email = make_email_request(self.mailgun)
 
@@ -123,7 +122,7 @@ class ReceiveMessageSyncTest(ReceiveMessageCallbacksTest):
         time.sleep(1)
         self.assertEqual(self.receve_email_mock.call_count, 1)
         self.assertEqual(self.attachment_mock.call_count, 1)
-        print "reveved email"
+        print "received email"
 
 
 class ReceiveMessageAsyncTest(ReceiveMessageCallbacksTest):
@@ -147,7 +146,7 @@ class ReceiveMessageAsyncTest(ReceiveMessageCallbacksTest):
         time.sleep(1)
         # self.assertEqual(self.receve_email_mock.call_count, 2)
         # self.assertEqual(self.attachment_mock.call_count, 2)
-        print "reveved 2 emails"
+        print "received 2 emails"
 
     def test_receive_100_messages(self):
         for i in xrange(100):
@@ -156,7 +155,7 @@ class ReceiveMessageAsyncTest(ReceiveMessageCallbacksTest):
             self.assertEqual(response.status_code, 200)
         # self.assertEqual(self.receve_email_mock.call_count, 100)
         # self.assertEqual(self.attachment_mock.call_count, 100)
-        print "reveved 100 emails"
+        print "received 100 emails"
 
 if __name__ == '__main__':
     unittest.main()
