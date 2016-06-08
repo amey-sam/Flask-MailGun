@@ -21,7 +21,7 @@ from threading import Thread
 from multiprocessing import Pool
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
-import ipdb
+
 
 class MailGunException(Exception):
     pass
@@ -315,7 +315,6 @@ class MailGunAPI(object):
         if not dest:
             dest = self.dest
         action = "forward('http://{}{}')".format(self.host, dest)
-        # ipdb.set_trace()
         expression = "match_recipient('{}@{}')".format(recipient, self.domain)
         return {"priority": priority,
                 "description": "Route created by Flak-MailGun3",
