@@ -285,7 +285,10 @@ class MailGunAPI(object):
         current_actions = expression_action[route['expression']]
         return set(route['action']) <= set(current_actions)
 
-    def create_route(self, recipient='user', dest='/messages/', priority=0, 
+    def create_route(self,
+                     recipient='user',
+                     dest='/messages/',
+                     priority=0,
                      data=None):
         self.dest = dest
         route = self._build_route(recipient, dest, priority)
