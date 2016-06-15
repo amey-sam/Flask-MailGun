@@ -177,7 +177,7 @@ class MailGun(object):
 
     def file_allowed(self, filename):
         return '.' in filename and \
-           filename.rsplit('.', 1)[1] in self.allowed_extensions
+           filename.rsplit('.', 1)[1].lower() in self.allowed_extensions
 
     def get_attachments(self, request):
         files = request.files.values()
@@ -273,6 +273,8 @@ class MailGunAPI(object):
     def list_routes(self):
         request = requests.get(self.routepoint,
                                auth=self.auth)
+        if not request.ok:
+            raise MailGunException("Failed to get routes. Please check your configuration e.g. your mailgun key.")
         return json.loads(request.text).get('items')
 
     def route_exists(self, route):
