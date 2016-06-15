@@ -177,7 +177,7 @@ class MailGun(object):
 
     def file_allowed(self, filename):
         return '.' in filename and \
-           filename.rsplit('.', 1)[1] in self.allowed_extensions
+           filename.rsplit('.', 1)[1].lower() in self.allowed_extensions
 
     def get_attachments(self, request):
         files = request.files.values()
