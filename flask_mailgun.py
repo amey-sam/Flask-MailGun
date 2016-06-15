@@ -273,6 +273,8 @@ class MailGunAPI(object):
     def list_routes(self):
         request = requests.get(self.routepoint,
                                auth=self.auth)
+        if not request.ok:
+            raise MailGunException("Failed to get routes. Please check your configuration e.g. your mailgun key.")
         return json.loads(request.text).get('items')
 
     def route_exists(self, route):
@@ -285,7 +287,10 @@ class MailGunAPI(object):
         current_actions = expression_action[route['expression']]
         return set(route['action']) <= set(current_actions)
 
-    def create_route(self, recipient='user', dest='/messages/', priority=0, 
+    def create_route(self,
+                     recipient='user',
+                     dest='/messages/',
+                     priority=0,
                      data=None):
         self.dest = dest
         route = self._build_route(recipient, dest, priority)

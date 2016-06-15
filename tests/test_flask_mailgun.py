@@ -14,6 +14,7 @@ from tests import config
 from tests.fixtures.email import make_email_request, make_email, sign_email
 import time
 
+
 def get_app(name):
     app = Flask(name)
     app.config.from_object(config)
