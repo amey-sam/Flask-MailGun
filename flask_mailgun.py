@@ -175,13 +175,9 @@ class MailGun(object):
         self._on_attachment.append(new_func)
         return func
 
-    def file_allowed(self, filename):
-        return '.' in filename and \
-           filename.rsplit('.', 1)[1] in self.allowed_extensions
-
     def get_attachments(self, request):
         files = request.files.values()
-        attachments = [att for att in files if self.file_allowed(att.filename)]
+        attachments = [att for att in files if self._is_file_allowed(att.filename)]
         return attachments
 
     def save_attachments(self, attachments, tempdir=None):
@@ -234,9 +230,9 @@ class MailGun(object):
                            'subject': subject,
                            'text': text})
 
-    def _is_allowed_file(self, f_name):
-        file_extension = os.path.splitext(f_name)[1].lower()
-        return file_extension in self.allowed_extensions
+    def _is_file_allowed(self, filename):
+        return '.' in filename and \
+            filename.rsplit('.', 1)[1].lower() in self.allowed_extensions
 
     def __log_status(self, request):
         if self.logger:

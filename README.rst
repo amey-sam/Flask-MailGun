@@ -1,0 +1,87 @@
+Flask-MailGun
+=============
+
+|Latest Version| |Build Status| |Coverage Status| |Code Climate| |Python
+Versions| |License| |Downloads|
+
+Flask MailGun extension to use the `MailGun <https://mailgun.com>`__
+email parsing service for sending and receiving emails.
+
+What it does
+------------
+
+Flask-MailGun allows you to configure your connection into the MailGun
+api so that you can - Send emails - Set up routes - Handel incoming
+emails
+
+Usage
+-----
+
+.. code:: python
+
+    from flask_mailgun import MailGun
+
+    mailgun = MailGun()
+
+    # .. later
+    mailgun.init_app(app)
+
+    # ..some other time
+    @mailgun.on_attachment
+    def save_attachment(email, attachment):
+        data = attachment.read()
+        with open(attachment.filename, "w") as f:
+            f.write(data)
+
+    # .. even later
+    mailgun.create_route('/uploads')
+
+Long Requests
+-------------
+
+A mechanisom has been put in place to simplify handeling long requests.
+Basically if your callback function blocks the processing of an email
+for toolong it will cause the post from the mailgun services to timeout.
+At the moment this is done by setting the ``mailgun.callback_handeler``
+to ``mailgun.async`` but you would have to do this before registering
+the callbacks (you could reregister on init as well).
+
+.. code:: python
+
+    # at config
+    app.config['MAILGUN_BG_PROCESSES'] = flask_mailgun.async_pool(NO_PROCS)
+    app.config['MAILGUN_CALLBACK_HANDELER'] = app.config['MAILGUN_BG_PROCESSES']
+    # or later
+    mailgun.callback_handeler = mailgun.async
+
+    # but you may still have to :(
+    mailgun._on_attachment = [mailgun.async(func) for func in mailgun._on_attachment]
+
+Async will save the attachment to disk and offload your callback to a
+process pool, handeling all the file opperations and file cleanup for
+you.
+
+This however is probably not an ideal system (threadding dosnt go to
+well with flask and the process pool implimentation is not simple), and
+for something more robust we need to move to a celary based system.
+Setting up celary server and taksks however are beyond the scope of this
+extension, (we will provide an example though). In addition it may be
+beniffichial to move to a notify fetch pattern instead of mailgun
+posting the email to us, however the implimentation details will remain
+internal to ``flask_mailgun`` and the api for ``process_attachment``
+shouldn't change.
+
+.. |Latest Version| image:: https://img.shields.io/pypi/v/flask-mailgun3.svg
+   :target: https://pypi.python.org/pypi/Flask-MailGun3
+.. |Build Status| image:: https://travis-ci.org/amey-sam/Flask-MailGun.svg?branch=master
+   :target: https://travis-ci.org/amey-sam/Flask-MailGun/builds/
+.. |Coverage Status| image:: https://coveralls.io/repos/github/amey-sam/Flask-MailGun/badge.svg?branch=master
+   :target: https://coveralls.io/github/amey-sam/Flask-MailGun?branch=master
+.. |Code Climate| image:: https://codeclimate.com/github/amey-sam/Flask-MailGun/badges/gpa.svg
+   :target: https://codeclimate.com/github/amey-sam/Flask-MailGun
+.. |Python Versions| image:: https://img.shields.io/pypi/pyversions/flask-mailgun3.svg
+   :target: https://pypi.python.org/pypi/Flask-MailGun3
+.. |License| image:: https://img.shields.io/pypi/l/Flask-MailGun3.svg
+   :target: https://pypi.python.org/pypi/Flask-MailGun3
+.. |Downloads| image:: https://img.shields.io/pypi/dm/flask-mailgun3.svg
+   :target: https://pypi.python.org/pypi/Flask-Mailgun3
