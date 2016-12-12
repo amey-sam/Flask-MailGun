@@ -25,8 +25,8 @@ class SaveAttachmentTest(MailgunTestBase):
         self.attachment.close()
 
     def test_fileallowed(self):
-        self.assertTrue(self.mailgun.file_allowed('test.txt'))
-        self.assertFalse(self.mailgun.file_allowed('bob'))
+        self.assertTrue(self.mailgun._file_allowed('test.txt'))
+        self.assertFalse(self.mailgun._file_allowed('bob'))
 
     def test_save_attachments(self):
         testdir = tempfile.mkdtemp()
