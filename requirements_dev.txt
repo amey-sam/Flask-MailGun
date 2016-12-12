@@ -4,7 +4,6 @@
 #
 #    pip-compile --output-file requirements_dev.txt requirements_dev.in
 #
-
 backports.shutil-get-terminal-size==1.0.0  # via ipython
 decorator==4.0.9          # via ipython, traitlets
 ipdb==0.10.0
@@ -18,6 +17,5 @@ simplegeneric==0.8.1      # via ipython
 six==1.10.0               # via pathlib2
 traitlets==4.2.1          # via ipython
 
-# The following packages are commented out because they are
-# considered to be unsafe in a requirements file:
+# The following packages are considered to be unsafe in a requirements file:
 # setuptools                # via ipdb, ipython
