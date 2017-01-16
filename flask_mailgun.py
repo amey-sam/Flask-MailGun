@@ -318,7 +318,7 @@ class MailGunAPI(object):
         action = "forward('http://{}{}')".format(self.host, dest)
         expression = "match_recipient('{}@{}')".format(recipient, self.domain)
         return {"priority": priority,
-                "description": "Route created by Flak-MailGun3",
+                "description": "Route created by Flask-MailGun3",
                 "expression": expression,
                 "action": [action, "stop()"]}
 
