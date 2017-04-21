@@ -1,4 +1,5 @@
 PATH := ./redis-git/src:${PATH}
+MAILGUN_API_KEY='testtesttest'
 
 help:
 	@echo "Please use 'make <target>' where <target> is one of"
@@ -29,7 +30,7 @@ cleanall: clean cleancov cleanmeta
 	-find . -type f -name "*.parse-index" -exec rm -f "{}" \;
 
 doc:
-  -pandoc --from=markdown --to=rst --output=README.rst README.md
+	-pandoc --from=markdown --to=rst --output=README.rst README.md
 
 dist: cleanmeta doc
 	-pandoc --from=markdown --to=rst --output=README.rst README.md
@@ -37,4 +38,18 @@ dist: cleanmeta doc
 
 package: dist
 	-twine upload dist/Flask-Cache-Redis-Cluster-"$(cat Version)".tar.gz
+
+setup_venv:
+	-virtualenv venv
+	-. venv/bin/activate
+	-pip install pip-tools
+	-pip-compile requirements.in
+	-pip install -r requirements.txt
+	-pip install pylint mock diff_cover coveralls
+
+test_and_coverage: setup_venv
+	-. venv/bin/activate
+	-coverage run --source=. -m unittest discover
+	-coverage xml
+	-pylint -f parseable -d | tee pylint.out
 
