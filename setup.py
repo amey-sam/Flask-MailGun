@@ -17,7 +17,7 @@ with open('README.rst') as f:
     readme = f.read()
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
-requirements = parse_requirements('requirements.in', session=False)
+requirements = parse_requirements('requirements.txt', session=False)
 requirements = [str(ir.req) for ir in requirements]
 
 __NAME__ = 'Flask-MailGun3'

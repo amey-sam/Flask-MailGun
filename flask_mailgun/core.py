@@ -30,7 +30,7 @@ class MailGun(object):
         self.mailgun_api = MailGunAPI(app.config)
         self.allowed_extensions = app.config.get('ALLOWED_EXTENSIONS',
                                                  ALL_EXTENSIONS)
-        self.processor = Processor(app.config)
+        self.processor = Processor(app)
         self.callback_handeler = self.processor.process
 
         domain = app.config.get('MAILGUN_DOMAIN', 'localhost')
@@ -123,7 +123,7 @@ class MailGun(object):
         self.send_message(sender=recipient,
                           recipients=[sender],
                           subject=subject,
-                          text=text)
+                          body=text)
 
     def _is_file_allowed(self, filename):
         return '.' in filename and \

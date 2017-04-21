@@ -11,6 +11,7 @@ import random
 import string
 from time import time
 from tests.fixtures import get_attachment
+from flask_mailgun.message import Message
 
 url_safe_chars = string.lowercase+string.digits+string.uppercase
 
@@ -36,7 +37,6 @@ def make_email():
     """factory for making a email test fixture"""
     # calculate the email signature as in
     # https://documentation.mailgun.com/user_manual.html#webhooks
-
     email = {"sender": "test@testy.mc.testface",
              "from": "test@testy.mc.testface",
              "recipient": ["user1@example.com", "user2@example.com"],
