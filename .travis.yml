@@ -1,20 +1,27 @@
 sudo: false
 language: python
 python:
-  - "2.7"
-
+- '2.7'
 env:
   global:
-      - MAILGUN_API_KEY=testtesttest
-      - secure: "QWNGqrTcNUIdtpBKz1KMsx54SZ5OkQ1eK8SR4iJag4I3UXhT7MIwtbBrWyIEQvoC2in23gp5lPPiG842lPgKebOz+8GyJHYaE7SKPjPdpRfxPJSoDrJagArKNcsZrcZJkAr9jIpqV6Ap7p0TzzOWXsqYDbmLWxgrJOLHTLHi9QZc71vjP4wRhRBtz24xcUgSsRRUrM56FrxSy27zoem4AeJwRRVB52d1HwDbcHtbJ/3taVHFd4WLbdUIbwyOvXX3RGqVv2TxX9YoH+1S18mSoKy+OWulOQyrHc8pjPkz+cNyCYXE2Pu3m97e5c+NzFLsnfqYyKwROM49qGOvXbY0tziVYUAvgoJ1P+fsShKH5WKhv9J917R5QLf12iWKPI3/apBhXb5yGoFOerSxMUgJz4hSuKGTbg7nJ2hWJZVop7+c2LiSbtahghhmjJwlVzNSzTb6X6UayEgVlaqSF7wyq5pJmMXZ7fDxoooTyu4iDjRwYzxH1OrUWYz2Q9pHK7YAf9dHOgnrqaI6f+HQ9qt9auG9pGQ7Ep7tQVcikvWLZEgyqYLClagazqwoJImPrLrip3JVnb4lTudiwn2jKHYVgSjfEJn28aBf9ArtBpIvtnl5Rpe7fHrfeape5zUZlxC0lZ2sYWkoef/KooYWKk1iXOPA59RmswE6G8OZ+KmrV9s="
-
+  - MAILGUN_API_KEY=testtesttest
+  - secure: QWNGqrTcNUIdtpBKz1KMsx54SZ5OkQ1eK8SR4iJag4I3UXhT7MIwtbBrWyIEQvoC2in23gp5lPPiG842lPgKebOz+8GyJHYaE7SKPjPdpRfxPJSoDrJagArKNcsZrcZJkAr9jIpqV6Ap7p0TzzOWXsqYDbmLWxgrJOLHTLHi9QZc71vjP4wRhRBtz24xcUgSsRRUrM56FrxSy27zoem4AeJwRRVB52d1HwDbcHtbJ/3taVHFd4WLbdUIbwyOvXX3RGqVv2TxX9YoH+1S18mSoKy+OWulOQyrHc8pjPkz+cNyCYXE2Pu3m97e5c+NzFLsnfqYyKwROM49qGOvXbY0tziVYUAvgoJ1P+fsShKH5WKhv9J917R5QLf12iWKPI3/apBhXb5yGoFOerSxMUgJz4hSuKGTbg7nJ2hWJZVop7+c2LiSbtahghhmjJwlVzNSzTb6X6UayEgVlaqSF7wyq5pJmMXZ7fDxoooTyu4iDjRwYzxH1OrUWYz2Q9pHK7YAf9dHOgnrqaI6f+HQ9qt9auG9pGQ7Ep7tQVcikvWLZEgyqYLClagazqwoJImPrLrip3JVnb4lTudiwn2jKHYVgSjfEJn28aBf9ArtBpIvtnl5Rpe7fHrfeape5zUZlxC0lZ2sYWkoef/KooYWKk1iXOPA59RmswE6G8OZ+KmrV9s=
 install:
-  - pip install codeclimate-test-reporter
-  - pip install -r requirements.txt
-  - pip install -r requirements_test.txt
-
+- pip install -r requirements.txt
+- pip install Flask-Caching
+- pip install -e .
+- pip install codeclimate-test-reporter
+- pip install coverage pylint mock diff_cover coveralls
 script: coverage run --source=. -m unittest discover
-
 after_success:
-    - coveralls
-    - codeclimate-test-reporter
+- coveralls
+- codeclimate-test-reporter
+deploy:
+  provider: pypi
+  user: RichardMathie
+  password:
+    secure: YIbCssyM+v0JIu1wF2NQze0hjNKBScf1RQNoK1zc1+HYl1SIfj1OXWJbRnTs6E3F9U4hVHt2lQZhBHXILK3xkD7J4SB18I2CAec34nAMAEFRfbF/o2g2gC5lEQK3isdQStmfSG0WHE9/p/VQgJn0gE1Tr8b+nr85jB91GVtgNB0D7NtWncVc3vc6V7gTXPOS3d69a8MJDpp6U4l8BZ35SB1speFTJW8O7j0kP5TWHnksHs153RxKNO1W1QJZ5QVnATscyNtx3wJ+ByeBO+mLDuYsgld7K3+/ZKNPjfn5U7dpg+vKXmIjAuoI8zKzcG7JusM0LMpEC3EgVKq/68BoxQvipDY7mawUvf7YSmxJjIa29fPiMl0f3cKtZSf+okCrnyBBDGJbKZ94HzhM25nZMrGd7IYiKeV+W50DdCLumRbO3KnLeVx1PtOcyxgx1H5u68WUjAcz4Nk0hAwYsRXLHvZa1UDwRPyzUQYNbyvEEuTPs9G6914xiQ0UBGkyamRpEnsSrLerqAiI62JS5VEt2x7VSpdIKovmveqrDKfaX0D0okHLK9qzcUIrMTYL3gN/7hB8BBun3d9gMsz5zWudRfzAUwLhdqgjnp1cOD/WMZw1NPAupfWROpf77NpLWzCLBM8DCam5CpQnZMLwOI707jma5lGa4/uB6YLbIX/Cbko=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: amey-sam/Flask-MailGun
