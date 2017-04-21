@@ -1,0 +1,5 @@
+include requirements.txt
+include README.rst
+include Version
+recursive-include examples *.py
+prune examples/sample?/build

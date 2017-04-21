@@ -9,8 +9,9 @@ import os
 import shutil
 import tempfile
 from werkzeug import FileStorage
+from flask_mailgun.attachment import save_attachments
 from tests.fixtures import get_attachment
-from test_flask_mailgun import MailgunTestBase
+from tests import MailgunTestBase
 
 
 class SaveAttachmentTest(MailgunTestBase):
@@ -31,7 +32,7 @@ class SaveAttachmentTest(MailgunTestBase):
     def test_save_attachments(self):
         testdir = tempfile.mkdtemp()
         self.attachment.seek(0)
-        filenames = self.mailgun.save_attachments([self.attachment], testdir)
+        filenames = save_attachments([self.attachment], testdir)
         filenames = [os.path.basename(filename) for filename in filenames]
         self.assertTrue(set(os.listdir(testdir)) == set(filenames))
         self.assertEqual(len(os.listdir(testdir)), 1)

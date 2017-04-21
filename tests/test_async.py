@@ -1,7 +1,7 @@
 # import os
 import time
 # from flask_mailgun import async
-from flask_mailgun import async_pool
+from flask_mailgun.processing import async_pool
 import unittest
 
 
