@@ -12,7 +12,8 @@ What it does
 
 Flask-MailGun allows you to configure your connection into the MailGun
 api so that you can - Send emails - Set up routes - Handel incoming
-emails
+emails - ``flask-mailgun3 >= 0.1.4`` should work with ``flask_security``
+as a drop in replacement for ``flask_mail``
 
 Usage
 -----
@@ -33,8 +34,18 @@ Usage
         with open(attachment.filename, "w") as f:
             f.write(data)
 
-    # .. even later
-    mailgun.create_route('/uploads')
+    # .. even later register the upload endpoint
+    mailgun.route('/uploads')
+
+    # send an email like flask_mail
+    message = Message()
+    message.subject = "Hello World"
+    message.sender = "from@example.com"
+    message.add_recipient("u1@example.com")
+    message.add_recipient("u2@example.com")
+    message.body = "Testing some Mailgun awesomness!"
+
+    mailgun.send(message)
 
 Long Requests
 -------------
@@ -49,7 +60,7 @@ the callbacks (you could reregister on init as well).
 .. code:: python
 
     # at config
-    app.config['MAILGUN_BG_PROCESSES'] = flask_mailgun.async_pool(NO_PROCS)
+    app.config['MAILGUN_BG_PROCESSES'] = flask_mailgun.processing.async_pool(NO_PROCS)
     app.config['MAILGUN_CALLBACK_HANDELER'] = app.config['MAILGUN_BG_PROCESSES']
     # or later
     mailgun.callback_handeler = mailgun.async

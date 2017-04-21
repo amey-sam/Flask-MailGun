@@ -17,6 +17,7 @@ Flask-MailGun allows you to configure your connection into the MailGun api so th
 - Send emails
 - Set up routes
 - Handel incoming emails
+- `flask-mailgun3 >= 0.1.4` should work with `flask_security` as a drop in replacement for `flask_mail`
 
 ## Usage
 
@@ -35,8 +36,18 @@ def save_attachment(email, attachment):
     with open(attachment.filename, "w") as f:
         f.write(data)
 
-# .. even later
-mailgun.create_route('/uploads')
+# .. even later register the upload endpoint
+mailgun.route('/uploads')
+
+# send an email like flask_mail
+message = Message()
+message.subject = "Hello World"
+message.sender = "from@example.com"
+message.add_recipient("u1@example.com")
+message.add_recipient("u2@example.com")
+message.body = "Testing some Mailgun awesomness!"
+
+mailgun.send(message)
 ```
 
 ## Long Requests
@@ -44,7 +55,7 @@ mailgun.create_route('/uploads')
 A mechanisom has been put in place to simplify handeling long requests. Basically if your callback function blocks the processing of an email for toolong it will cause the post from the mailgun services to timeout. At the moment this is done by setting the `mailgun.callback_handeler` to `mailgun.async` but you would have to do this before registering the callbacks (you could reregister on init as well).
 ```python
 # at config
-app.config['MAILGUN_BG_PROCESSES'] = flask_mailgun.async_pool(NO_PROCS)
+app.config['MAILGUN_BG_PROCESSES'] = flask_mailgun.processing.async_pool(NO_PROCS)
 app.config['MAILGUN_CALLBACK_HANDELER'] = app.config['MAILGUN_BG_PROCESSES']
 # or later
 mailgun.callback_handeler = mailgun.async
