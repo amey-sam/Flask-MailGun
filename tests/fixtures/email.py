@@ -13,7 +13,7 @@ from time import time
 from tests.fixtures import get_attachment
 from flask_mailgun.message import Message
 
-url_safe_chars = string.lowercase+string.digits+string.uppercase
+url_safe_chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
 
 
 def random_string(length):
