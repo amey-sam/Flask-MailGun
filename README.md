@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/pypi/l/Flask-MailGun3.svg)](https://pypi.python.org/pypi/Flask-MailGun3)
 [![Downloads](https://img.shields.io/pypi/dm/flask-mailgun3.svg)](https://pypi.python.org/pypi/Flask-Mailgun3)
 
-Flask MailGun extension to use the [MailGun](https://mailgun.com) email parsing service for sending and receiving emails.
+Flask-MailGun Flask extension to use the [MailGun](https://mailgun.com) email parsing service for sending and receiving emails.
 
 ## What it does
 
