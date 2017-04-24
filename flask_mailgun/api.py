@@ -22,7 +22,7 @@ MAILGUN_API_URL = 'https://api.mailgun.net/v3'
 class MailGunAPI(object):
     def __init__(self, config):
         self.domain = config['MAILGUN_DOMAIN']
-        self.api_key = config['MAILGUN_API_KEY']
+        self.api_key = bytes(config['MAILGUN_API_KEY'])
         self.api_url = config.get('MAILGUN_API_URL',
                                   MAILGUN_API_URL)
         self.route = config.get('MAILGUN_ROUTE', 'uploads')
@@ -142,7 +142,7 @@ class MailGunAPI(object):
             raise MailGunException("Mailbox Error: credential verification failed.", "Not enough parameters")
 
         signature_calc = hmac.new(key=self.api_key,
-                                  msg='{}{}'.format(timestamp, token),
+                                  msg=bytes('{}{}'.format(timestamp, token)),
                                   digestmod=hashlib.sha256).hexdigest()
         if signature != signature_calc:
             raise MailGunException("Mailbox Error: credential verification failed.", "Signature doesn't match")
