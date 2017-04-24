@@ -85,20 +85,20 @@ class MailGun(object):
         self._on_attachment.append(new_func)
         return func
 
-    def get_attachments(self, request):
-        files = request.files.values()
+    def get_attachments(self, reqst):
+        files = reqst.files.values()
         attachments = [att for att in files if self._is_file_allowed(att.filename)]
         return attachments
 
-    def process_email(self, request):
+    def process_email(self, reqst):
         """Function to pass to endpoint for processing incoming email post
 
         app.route('/incoming', methods=['POST'])(process_email)
         """
-        email = request.form
+        email = reqst.form
         self.mailgun_api.verify_email(email)
         # Process the attachments
-        attachments = self.get_attachments(request)
+        attachments = self.get_attachments(reqst)
 
         process_attachments(email, attachments, self._on_attachment)
 
@@ -106,7 +106,7 @@ class MailGun(object):
         for func in self._on_receive:
             func(email)
         # log and notify
-        self.__log_status(request)
+        self.__log_status(reqst)
         if self.auto_reply:
             self.reply_sender(email)
         return "OK"
@@ -129,13 +129,13 @@ class MailGun(object):
         return '.' in filename and \
             filename.rsplit('.', 1)[1].lower() in self.allowed_extensions
 
-    def __log_status(self, request):
+    def __log_status(self, reqst):
         if self.logger:
-            email = request.form
+            email = reqst.form
             return self.logger.log({
                 "message": "Email received",
                 "sender": email.get("sender"),
                 "receiver": email.get("recipient"),
                 "timestamp": email.get("timestamp"),
                 "number_of_attachments": email.get("attachment-count"),
-                "attachment_names": request.files.keys()}, "Info")
+                "attachment_names": reqst.files.keys()}, "Info")

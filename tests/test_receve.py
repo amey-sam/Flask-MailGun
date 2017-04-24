@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
 """
 Created on Fri Apr 21 14:05:26 2017
 
@@ -56,7 +58,7 @@ class ReceiveMessageCallbacksTest(MailgunTestBase):
             responce = self.attachment_mock(email, attachment)
             data = attachment.read()
             len(data)
-            for i in xrange(10):
+            for i in range(10):
                 time.sleep(0.1)
 
             return responce
@@ -70,7 +72,7 @@ class ReceiveMessageSyncTest(ReceiveMessageCallbacksTest):
         time.sleep(1)
         self.assertEqual(self.receve_email_mock.call_count, 1)
         self.assertEqual(self.attachment_mock.call_count, 1)
-        print "received email"
+        print ("received email")
 
 
 class ReceiveMessageAsyncTest(ReceiveMessageCallbacksTest):
@@ -94,16 +96,17 @@ class ReceiveMessageAsyncTest(ReceiveMessageCallbacksTest):
         time.sleep(1)
         # self.assertEqual(self.receve_email_mock.call_count, 2)
         # self.assertEqual(self.attachment_mock.call_count, 2)
-        print "received 2 emails"
+        print("received 2 emails")
 
     def test_receive_100_messages(self):
-        for i in xrange(100):
+        for i in range(100):
             email = make_email_request(self.mailgun)
             response = self.appclient.post('/upload', data=email)
             self.assertEqual(response.status_code, 200)
         # self.assertEqual(self.receve_email_mock.call_count, 100)
         # self.assertEqual(self.attachment_mock.call_count, 100)
-        print "received 100 emails"
+        print ("received 100 emails")
+
 
 if __name__ == '__main__':
     unittest.main()

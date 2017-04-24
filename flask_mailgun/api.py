@@ -27,6 +27,7 @@ class MailGunAPI(object):
                                   MAILGUN_API_URL)
         self.route = config.get('MAILGUN_ROUTE', 'uploads')
         self.host = config.get('MAILGUN_HOST', self.domain)
+        self.dest = '/messages/'
         if self.api_key is None:
             raise MailGunException("No mailgun key supplied.")
 
@@ -117,12 +118,15 @@ class MailGunAPI(object):
         """ Get id of the route
         Return: id of the route. None if not exist.
         """
-        def make_key(route):
-            return route["expression"].join(route["action"])
+        def make_key(_route):
+            return _route["expression"].join(_route["action"])
+
         # TODO RPM YXI, not actually shure this is what we want...
         routes = self.list_routes()
         if routes:
             id_table = dict((make_key(r), r["id"]) for r in routes)
+        else:
+            return None
         return id_table.get(make_key(route)) if routes else None
 
     def verify_email(self, email):
@@ -157,4 +161,4 @@ class MailGunAPI(object):
 
     @property
     def auth(self):
-        return ('api', self.api_key)
+        return 'api', self.api_key

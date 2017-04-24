@@ -6,7 +6,7 @@ import unittest
 
 
 def runner(fun):
-    results = [fun(i) for i in xrange(20)]
+    results = [fun(i) for i in range(20)]
     for result in results:
         result.wait()
         result.get()
