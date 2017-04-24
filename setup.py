@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Flask-MailGun
+Flask extension to use the Mailgun email parsing service
+for sending and receving emails
+"""
 from pip.req import parse_requirements
 try:
     from setuptools import setup
@@ -7,10 +12,10 @@ except ImportError:
     from distutils.core import setup
 
 
-with open('Version', 'r') as f:
-    version = next(f).strip().decode('utf-8')
+with open('Version', encoding='utf-8') as f:
+    version = next(f).strip()
 
-with open('README.rst') as f:
+with open('README.rst', encoding='utf-8') as f:
     readme = f.read()
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
@@ -51,3 +56,4 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ]
 )
+

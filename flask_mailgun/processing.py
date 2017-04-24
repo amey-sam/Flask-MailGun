@@ -1,7 +1,7 @@
-from threading import Thread
-from multiprocessing import Pool
-from decorator import decorator
 from functools import wraps
+from multiprocessing import Pool
+
+from decorator import decorator
 
 
 def async_pool(pool_size):
