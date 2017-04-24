@@ -57,7 +57,7 @@ class ReceiveMessageCallbacksTest(MailgunTestBase):
             responce = self.attachment_mock(email, attachment)
             data = attachment.read()
             len(data)
-            for i in xrange(10):
+            for i in range(10):
                 time.sleep(0.1)
 
             return responce
@@ -98,7 +98,7 @@ class ReceiveMessageAsyncTest(ReceiveMessageCallbacksTest):
         print ("received 2 emails")
 
     def test_receive_100_messages(self):
-        for i in xrange(100):
+        for i in range(100):
             email = make_email_request(self.mailgun)
             response = self.appclient.post('/upload', data=email)
             self.assertEqual(response.status_code, 200)
