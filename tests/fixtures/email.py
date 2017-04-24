@@ -24,8 +24,10 @@ def sign_email(email, mailgun):
     token = random_string(50)
     timestamp = int(time())
     api_key = mailgun.mailgun_api.api_key
+    message = '{}{}'.format(timestamp, token).encode('utf-8')
+                                 
     signature = hmac.new(key=api_key,
-                         msg=bytes('{}{}'.format(timestamp, token)),
+                         msg=message,
                          digestmod=hashlib.sha256).hexdigest()
     email.update(dict(token=token,
                       timestamp=timestamp,
