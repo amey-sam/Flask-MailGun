@@ -13,3 +13,4 @@ def get_attachment():
     f_name = os.path.join(fixture_dir, filename)
     file_stream = open(f_name, "r")
     return (filename, file_stream)
+

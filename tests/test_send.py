@@ -23,7 +23,7 @@ class SendMessageTest(MailgunTestBase):
         data = self.mock_post.call_args[1]['data']
         # files = self.mock_post.call_args[1]['files']
         self.assertEqual(url, 'https://api.mailgun.net/v3/example.com/messages')
-        self.assertEqual(auth, ('api', 'testtesttest'))
+        self.assertEqual(auth, ('api', b'testtesttest'))
         # self.assertEqual(files, [])
         self.assertEqual(data['from'], message.sender)
         self.assertEqual(data['to'], set(message.recipients))

@@ -1,19 +1,22 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Flask-MailGun
 Flask extension to use the Mailgun email parsing service
 for sending and receving emails
 """
 from pip.req import parse_requirements
+from io import open
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
 
-with open('Version', 'r') as f:
-    version = next(f).strip().decode('utf-8')
+with open('Version', encoding='utf-8') as f:
+    version = next(f).strip()
 
-with open('README.rst') as f:
+with open('README.rst', encoding='utf-8') as f:
     readme = f.read()
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
@@ -21,6 +24,7 @@ requirements = parse_requirements('requirements.txt', session=False)
 requirements = [str(ir.req) for ir in requirements]
 
 __NAME__ = 'Flask-MailGun3'
+__doc__ = readme
 __author__ = 'Amey-SAM'
 __license__ = 'MIT'
 __copyright__ = '2016'
@@ -35,8 +39,8 @@ setup(
     author_email='richard.mathie@amey.co.uk',
     url='https://github.com/amey-sam/Flask-MailGun',
     download_url='https://github.com/amey-sam/Flask-MailGun/tarball/master',
-    py_modules=['flask_mailgun'],
-    # packages=['flask_mailgun'],
+    # py_modules=['flask_mailgun'],
+    packages=['flask_mailgun'],
     install_requires=requirements,
     keywords=['flask', 'mailgun'],
     zip_safe=False,
@@ -53,3 +57,4 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ]
 )
+

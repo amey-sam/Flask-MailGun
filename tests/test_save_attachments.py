@@ -8,7 +8,7 @@ import unittest
 import os
 import shutil
 import tempfile
-from werkzeug import FileStorage
+from werkzeug.datastructures import FileStorage
 from flask_mailgun.attachment import save_attachments
 from tests.fixtures import get_attachment
 from tests import MailgunTestBase

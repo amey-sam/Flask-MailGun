@@ -22,11 +22,12 @@ MAILGUN_API_URL = 'https://api.mailgun.net/v3'
 class MailGunAPI(object):
     def __init__(self, config):
         self.domain = config['MAILGUN_DOMAIN']
-        self.api_key = config['MAILGUN_API_KEY']
+        self.api_key = config['MAILGUN_API_KEY'].encode('utf-8')
         self.api_url = config.get('MAILGUN_API_URL',
                                   MAILGUN_API_URL)
         self.route = config.get('MAILGUN_ROUTE', 'uploads')
         self.host = config.get('MAILGUN_HOST', self.domain)
+        self.dest = '/messages/'
         if self.api_key is None:
             raise MailGunException("No mailgun key supplied.")
 
@@ -117,13 +118,16 @@ class MailGunAPI(object):
         """ Get id of the route
         Return: id of the route. None if not exist.
         """
-        def make_key(route):
-            return route["expression"].join(route["action"])
+        def make_key(_route):
+            return _route["expression"].join(_route["action"])
+
         # TODO RPM YXI, not actually shure this is what we want...
         routes = self.list_routes()
         if routes:
             id_table = dict((make_key(r), r["id"]) for r in routes)
-        return id_table.get(make_key(route)) if routes else None
+            return id_table.get(make_key(route)) 
+        else:
+            return None
 
     def verify_email(self, email):
         """Check that the email post came from mailgun
@@ -137,8 +141,9 @@ class MailGunAPI(object):
         if timestamp is None or token is None or signature is None:
             raise MailGunException("Mailbox Error: credential verification failed.", "Not enough parameters")
 
+        message = '{}{}'.format(timestamp, token).encode('utf-8')
         signature_calc = hmac.new(key=self.api_key,
-                                  msg='{}{}'.format(timestamp, token),
+                                  msg=message,
                                   digestmod=hashlib.sha256).hexdigest()
         if signature != signature_calc:
             raise MailGunException("Mailbox Error: credential verification failed.", "Signature doesn't match")
@@ -157,4 +162,4 @@ class MailGunAPI(object):
 
     @property
     def auth(self):
-        return ('api', self.api_key)
+        return 'api', self.api_key
