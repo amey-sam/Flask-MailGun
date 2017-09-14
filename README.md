@@ -16,7 +16,7 @@ Flask-MailGun Flask extension to use the [MailGun](https://mailgun.com) email pa
 Flask-MailGun allows you to configure your connection into the MailGun api so that you can
 - Send emails
 - Set up routes
-- Handel incoming emails
+- Handle incoming emails
 - `flask-mailgun3 >= 0.1.4` should work with `flask_security` as a drop in replacement for `flask_mail`
 
 ## Usage
