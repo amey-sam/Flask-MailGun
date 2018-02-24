@@ -38,7 +38,7 @@ def attachment_decorator(f, email, filename):
     """Converts a file back into a FileStorage Object"""
     with open(filename, 'r') as file:
         attachment = FileStorage(stream=file,
-                                 filename=filename.encode('utf-8'))
+                                 filename=filename)
         result = f(email, attachment)
     return result
 
@@ -90,7 +90,7 @@ class Attachment(object):
 
     def __init__(self, filename=None, content_type=None, data=None,
                  disposition=None, headers=None):
-        self.filename = filename.encode('utf-8')
+        self.filename = filename
         self.content_type = content_type
         self.data = data
         self.disposition = disposition or 'attachment'
