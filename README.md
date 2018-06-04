@@ -16,7 +16,7 @@ Flask-MailGun Flask extension to use the [MailGun](https://mailgun.com) email pa
 Flask-MailGun allows you to configure your connection into the MailGun api so that you can
 - Send emails
 - Set up routes
-- Handel incoming emails
+- Handle incoming emails
 - `flask-mailgun3 >= 0.1.4` should work with `flask_security` as a drop in replacement for `flask_mail`
 
 ## Usage
@@ -52,7 +52,7 @@ mailgun.send(message)
 
 ## Long Requests
 
-A mechanisom has been put in place to simplify handeling long requests. Basically if your callback function blocks the processing of an email for toolong it will cause the post from the mailgun services to timeout. At the moment this is done by setting the `mailgun.callback_handeler` to `mailgun.async` but you would have to do this before registering the callbacks (you could reregister on init as well).
+A mechanisom has been put in place to simplify handling long requests. Basically if your callback function blocks the processing of an email for toolong it will cause the post from the mailgun services to timeout. At the moment this is done by setting the `mailgun.callback_handeler` to `mailgun.async` but you would have to do this before registering the callbacks (you could reregister on init as well).
 ```python
 # at config
 app.config['MAILGUN_BG_PROCESSES'] = flask_mailgun.processing.async_pool(NO_PROCS)
@@ -64,6 +64,6 @@ mailgun.callback_handeler = mailgun.async
 mailgun._on_attachment = [mailgun.async(func) for func in mailgun._on_attachment]
 ```
 
-Async will save the attachment to disk and offload your callback to a process pool, handeling all the file opperations and file cleanup for you.
+Async will save the attachment to disk and offload your callback to a process pool, handling all the file opperations and file cleanup for you.
 
 This however is probably not an ideal system (threadding dosnt go to well with flask and the process pool implimentation is not simple), and for something more robust we need to move to a celary based system. Setting up celary server and taksks however are beyond the scope of this extension, (we will provide an example though). In addition it may be beniffichial to move to a notify fetch pattern instead of mailgun posting the email to us, however the implimentation details will remain internal to `flask_mailgun` and the api for `process_attachment` shouldn't change.
