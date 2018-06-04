@@ -11,6 +11,6 @@ def get_attachment():
     filename = "test_attachment.txt"
     fixture_dir = os.path.dirname(__file__)
     f_name = os.path.join(fixture_dir, filename)
-    file_stream = open(f_name, "r")
+    file_stream = open(f_name, "rb")
     return (filename, file_stream)
 
