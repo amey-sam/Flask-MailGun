@@ -71,10 +71,6 @@ class Message(object):
         self.attachments = attachments or []
 
     @property
-    def send_to(self):
-        return set(self.recipients) | set(self.bcc or ()) | set(self.cc or ())
-
-    @property
     def html(self):
         return self.alts.get('html')
 

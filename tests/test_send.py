@@ -15,6 +15,7 @@ class SendMessageTest(MailgunTestBase):
         message = Message(subject="Hello",
                           sender="from@example.com",
                           recipients=["u1@example.com", "u2@example.com"],
+                          bcc=["foo@bar.com"],
                           body="Testing some Mailgun awesomness!")
         self.mailgun.send(message)
         self.assertTrue(self.mock_post.called)
@@ -27,6 +28,8 @@ class SendMessageTest(MailgunTestBase):
         # self.assertEqual(files, [])
         self.assertEqual(data['from'], message.sender)
         self.assertEqual(data['to'], set(message.recipients))
+        self.assertEqual(data['bcc'], set(message.bcc))
+        self.assertEqual(data['cc'], set())
         self.assertEqual(data['subject'], message.subject)
         self.assertEqual(data['text'], message.body)
 
