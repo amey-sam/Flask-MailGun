@@ -81,7 +81,7 @@ class ReceiveMessageAsyncTest(ReceiveMessageCallbacksTest):
         self.email1 = make_email_request(self.mailgun)
         self.email2 = make_email_request(self.mailgun)
         # re register callbacks as async
-        self.mailgun.callback_handeler = self.mailgun.processor.async
+        self.mailgun.callback_handeler = self.mailgun.processor.async_pool
         callbacks = self.mailgun._on_attachment
         self.mailgun._on_attachment = []
         for callback in callbacks:
