@@ -27,9 +27,9 @@ class SendMessageTest(MailgunTestBase):
         self.assertEqual(auth, ('api', b'testtesttest'))
         # self.assertEqual(files, [])
         self.assertEqual(data['from'], message.sender)
-        self.assertEqual(data['to'], set(message.recipients))
-        self.assertEqual(data['bcc'], set(message.bcc))
-        self.assertEqual(data['cc'], set())
+        self.assertEqual(data['to'], message.recipients)
+        self.assertEqual(data['bcc'], message.bcc)
+        self.assertEqual(data['cc'], [])
         self.assertEqual(data['subject'], message.subject)
         self.assertEqual(data['text'], message.body)
 
