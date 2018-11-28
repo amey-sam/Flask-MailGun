@@ -52,7 +52,7 @@ mailgun.send(message)
 
 ## Long Requests
 
-A mechanisom has been put in place to simplify handling long requests. Basically if your callback function blocks the processing of an email for toolong it will cause the post from the mailgun services to timeout. At the moment this is done by setting the `mailgun.callback_handeler` to `mailgun.async_pool` but you would have to do this before registering the callbacks (you could reregister on init as well).
+A mechanisom has been put in place to simplify handeling long requests. Basically if your callback function blocks the processing of an email for toolong it will cause the post from the mailgun services to timeout. At the moment this is done by setting the `mailgun.callback_handeler` to `mailgun.async_pool` but you would have to do this before registering the callbacks (you could reregister on init as well).
 ```python
 # at config
 app.config['MAILGUN_BG_PROCESSES'] = flask_mailgun.processing.async_pool(NO_PROCS)

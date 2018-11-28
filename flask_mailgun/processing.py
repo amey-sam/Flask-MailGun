@@ -24,7 +24,7 @@ class Processor:
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app):   
+    def init_app(self, app):
         self.callback_handeler = app.config.get('MAILGUN_CALLBACK_HANDELER',
                                                 sync)
         self.async_pool = async_pool(app.config.get('MAILGUN_BG_PROCESSES', 4))
