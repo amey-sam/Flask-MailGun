@@ -7,8 +7,11 @@ Created on Fri Apr 21 14:05:26 2017
 from __future__ import print_function
 import unittest
 import time
+import json
 from flask_mailgun.utils import MailGunException
 from mock import MagicMock
+
+from collections import namedtuple
 
 from tests import MailgunTestBase
 from tests.fixtures.email import make_email_request, make_email, sign_email
