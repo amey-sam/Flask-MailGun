@@ -55,7 +55,7 @@ A mechanisom has been put in place to simplify handeling long requests.
 Basically if your callback function blocks the processing of an email
 for toolong it will cause the post from the mailgun services to timeout.
 At the moment this is done by setting the ``mailgun.callback_handeler``
-to ``mailgun.async`` but you would have to do this before registering
+to ``mailgun.async_pool`` but you would have to do this before registering
 the callbacks (you could reregister on init as well).
 
 .. code:: python
@@ -64,10 +64,10 @@ the callbacks (you could reregister on init as well).
     app.config['MAILGUN_BG_PROCESSES'] = flask_mailgun.processing.async_pool(NO_PROCS)
     app.config['MAILGUN_CALLBACK_HANDELER'] = app.config['MAILGUN_BG_PROCESSES']
     # or later
-    mailgun.callback_handeler = mailgun.async
+    mailgun.callback_handeler = mailgun.async_pool
 
     # but you may still have to :(
-    mailgun._on_attachment = [mailgun.async(func) for func in mailgun._on_attachment]
+    mailgun._on_attachment = [mailgun.async_pool(func) for func in mailgun._on_attachment]
 
 Async will save the attachment to disk and offload your callback to a
 process pool, handeling all the file opperations and file cleanup for
