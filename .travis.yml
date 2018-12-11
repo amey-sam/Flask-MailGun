@@ -21,6 +21,8 @@ after_success:
 - coveralls
 - codeclimate-test-reporter
 deploy:
+  skip_cleanup: true
+  skip_existing: true
   provider: pypi
   user: RichardMathie
   password:
