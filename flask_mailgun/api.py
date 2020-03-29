@@ -16,18 +16,18 @@ from collections import defaultdict
 from .utils import MailGunException
 from .message import Message
 
-MAILGUN_API_URL = 'https://api.mailgun.net/v3'
+MAILGUN_API_URL = "https://api.mailgun.net/v3"
 
 
 class MailGunAPI(object):
     def __init__(self, config):
-        self.domain = config['MAILGUN_DOMAIN']
-        self.api_key = config['MAILGUN_API_KEY'].encode('utf-8')
-        self.api_url = config.get('MAILGUN_API_URL',
+        self.domain = config["MAILGUN_DOMAIN"]
+        self.api_key = config["MAILGUN_API_KEY"].encode("utf-8")
+        self.api_url = config.get("MAILGUN_API_URL",
                                   MAILGUN_API_URL)
-        self.route = config.get('MAILGUN_ROUTE', 'uploads')
-        self.host = config.get('MAILGUN_HOST', self.domain)
-        self.dest = '/messages/'
+        self.route = config.get("MAILGUN_ROUTE", "uploads")
+        self.host = config.get("MAILGUN_HOST", self.domain)
+        self.dest = "/messages/"
         if self.api_key is None:
             raise MailGunException("No mailgun key supplied.")
 
@@ -36,24 +36,30 @@ class MailGunAPI(object):
         :param message: Message instance.
         :param envelope_from: Email address to be used in MAIL FROM command.
         """
-        mesage_data = {'from': envelope_from or message.sender,
-                       'to': message.recipients,
-                       'subject': message.subject,
-                       "cc": message.cc,
-                       "bcc": message.bcc,
-                       'text': message.body,
-                       'html': message.html}
-        mesage_data = {k: v for k, v in mesage_data.items() if v is not None}
+        message_data = {"from": envelope_from or message.sender,
+                        "to": message.recipients,
+                        "subject": message.subject,
+                        "cc": message.cc,
+                        "bcc": message.bcc,
+                        "text": message.body,
+                        "html": message.html,
+                        "h:Reply-To": message.reply_to,
+                        }
+        message_data = {k: v for k, v in message_data.items() if v is not None}
+        if message.extra_headers:
+            message_data.update(
+                {"h:{}".format(k): v for k, v in message.extra_headers.items() if v is not None})
 
         files = [(a.disposition, (a.filename, a.data))
                  for a in message.attachments]
 
-        responce = requests.post(self.sendpoint,
+        response = requests.post(self.sendpoint,
                                  auth=self.auth,
-                                 data=mesage_data,
+                                 data=message_data,
                                  files=files)
-        responce.raise_for_status()
-        return responce
+
+        response.raise_for_status()
+        return response
 
     def send_message(self, *args, **kwargs):
         """Shortcut for send(msg).
@@ -68,20 +74,19 @@ class MailGunAPI(object):
                                auth=self.auth)
         if not request.ok:
             raise MailGunException("Failed to get routes. Please check your configuration e.g. your mailgun key.")
-        return json.loads(request.text).get('items')
+        return json.loads(request.text).get("items")
 
     def route_exists(self, route):
         routes = self.list_routes()
 
         expression_action = defaultdict(list)
         for r in routes:
-            expression_action[r['expression']].extend(r['actions'])
+            expression_action[r["expression"]].extend(r["actions"])
 
-        current_actions = expression_action[route['expression']]
-        return set(route['action']) <= set(current_actions)
+        current_actions = expression_action[route["expression"]]
+        return set(route["action"]) <= set(current_actions)
 
-    def create_route(self, recipient='user', dest='/messages/', priority=0):
-
+    def create_route(self, recipient="user", dest="/messages/", priority=0):
         route = self._build_route(recipient, dest, priority)
         # Create Route Only if it does not Exist # TODO should update?
         if self.route_exists(route):
@@ -125,7 +130,7 @@ class MailGunAPI(object):
         routes = self.list_routes()
         if routes:
             id_table = dict((make_key(r), r["id"]) for r in routes)
-            return id_table.get(make_key(route)) 
+            return id_table.get(make_key(route))
         else:
             return None
 
@@ -141,7 +146,7 @@ class MailGunAPI(object):
         if timestamp is None or token is None or signature is None:
             raise MailGunException("Mailbox Error: credential verification failed.", "Not enough parameters")
 
-        message = '{}{}'.format(timestamp, token).encode('utf-8')
+        message = "{}{}".format(timestamp, token).encode("utf-8")
         signature_calc = hmac.new(key=self.api_key,
                                   msg=message,
                                   digestmod=hashlib.sha256).hexdigest()
@@ -150,16 +155,16 @@ class MailGunAPI(object):
 
     def api_route(self, *pieces):
         pieces = [self.api_url] + [p for p in pieces]
-        return '/'.join(s.strip('/') for s in pieces)
+        return "/".join(s.strip("/") for s in pieces)
 
     @property
     def sendpoint(self):
-        return self.api_route(self.domain, 'messages')
+        return self.api_route(self.domain, "messages")
 
     @property
     def routepoint(self):
-        return self.api_route('routes')
+        return self.api_route("routes")
 
     @property
     def auth(self):
-        return 'api', self.api_key
+        return "api", self.api_key
